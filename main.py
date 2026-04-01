@@ -38,6 +38,18 @@ def carregar_dados():
             }
             for k, v in novas_chaves.items():
                 if k not in dados: dados[k] = v
+            
+            # Restauração estrutural contra deleção de listas vazias pelo Firebase
+            if "cultura" not in dados:
+                dados["cultura"] = {"mes_referencia": datetime.now().strftime("%Y-%m"), "filmes": [], "livros": []}
+            if "filmes" not in dados["cultura"]:
+                dados["cultura"]["filmes"] = []
+            if "livros" not in dados["cultura"]:
+                dados["cultura"]["livros"] = []
+            if "missoes_diarias" not in dados:
+                dados["missoes_diarias"] = {"data": "", "missoes": []}
+            if "missoes" not in dados["missoes_diarias"]:
+                dados["missoes_diarias"]["missoes"] = []
                 
             if "conquistas" not in dados:
                 dados["conquistas"] = {
@@ -48,7 +60,6 @@ def carregar_dados():
     except Exception:
         pass
         
-            
     return {
         "saldo": 0, "xp": 0, "nivel": 1, "cupons": 0, "contadores": {}, "streak": 0,
         "ultima_atividade": str(datetime.now().date() - timedelta(days=1)),
@@ -70,7 +81,6 @@ def carregar_dados():
             "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(datetime.now().date()), "data_conclusao": ""}
         }
     }
-
         
         
 def salvar_dados(dados):
