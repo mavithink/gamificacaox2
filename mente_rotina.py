@@ -22,17 +22,83 @@ def salvar_tarefas(tarefas):
 
 def renderizar(dados):
     st.title("🧠 Mente e Rotina")
-    sorte_ativa = dados["sorte_dia"]["efeito"]
+    sorte_ativa = dados.get("sorte_dia", {}).get("efeito")
     agora_br = datetime.utcnow() - timedelta(hours=3)
     hoje_str = str(agora_br.date())
 
-    # GANHOS RÁPIDOS
-    with st.expander("Tarefas de Rotina (Ganhos Rápidos)", expanded=False):
+    # Garantia de estrutura para limites diários
+    if "limites_diarios" not in dados:
+        dados["limites_diarios"] = {}
+        
+    if dados["limites_diarios"].get("agua_data") != hoje_str:
+        dados["limites_diarios"]["agua_data"] = hoje_str
+        dados["limites_diarios"]["agua_count"] = 0
+
+    # ==========================================
+    # HÁBITOS EM DESTAQUE
+    # ==========================================
+    st.markdown("""
+        <div style="background-color: #1a1a2e; padding: 15px; border-radius: 10px; border-left: 5px solid #FFD700; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #FFD700;">🌟 Hábitos em Destaque</h3>
+            <p style="margin: 5px 0 0 0; color: #8a8a9d; font-size: 14px;">Tarefas prioritárias para o seu dia.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col_destaque1, col_destaque2 = st.columns(2)
+    
+    with col_destaque1:
+        if dados["limites_diarios"].get("paginas") == hoje_str:
+            st.button("📖 10 Páginas (Concluído)", disabled=True, use_container_width=True)
+        else:
+            if st.button("📖 Ler 10 Pág. (+10$/+15XP)", type="primary", use_container_width=True):
+                dados["limites_diarios"]["paginas"] = hoje_str
+                core.alterar_valor(dados, "Paginas", 10, 15, "soma")
+
+    with col_destaque2:
+        count_agua = dados["limites_diarios"].get("agua_count", 0)
+        if count_agua >= 3:
+            st.button("💧 Garrafa Cheia (3/3)", disabled=True, use_container_width=True)
+        else:
+            if st.button(f"💧 Encher Garrafa (+2$/+2XP) [{count_agua}/3]", type="primary", use_container_width=True):
+                dados["limites_diarios"]["agua_count"] += 1
+                core.alterar_valor(dados, "Garrafa de Agua", 2, 2, "soma")
+
+    # ==========================================
+    # ROTINA DIÁRIA (1X)
+    # ==========================================
+    st.markdown("""
+        <div style="background-color: #1a1a2e; padding: 15px; border-radius: 10px; border-left: 5px solid #00E5FF; margin-bottom: 20px; margin-top: 10px;">
+            <h3 style="margin: 0; color: #00E5FF;">📋 Rotina Diária</h3>
+            <p style="margin: 5px 0 0 0; color: #8a8a9d; font-size: 14px;">Ações únicas diárias.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col_rotina1, col_rotina2 = st.columns(2)
+    
+    with col_rotina1:
+        if dados["limites_diarios"].get("agenda") == hoje_str:
+            st.button("📅 Agenda Atualizada", disabled=True, use_container_width=True)
+        else:
+            if st.button("📅 Atualizar Agenda (+1$/+2XP)", use_container_width=True):
+                dados["limites_diarios"]["agenda"] = hoje_str
+                core.alterar_valor(dados, "Atualizar agenda", 1, 2, "soma")
+                
+    with col_rotina2:
+        if dados["limites_diarios"].get("noticias") == hoje_str:
+            st.button("📰 Notícias (Lido)", disabled=True, use_container_width=True)
+        else:
+            if st.button("📰 Ler Notícias (+5$/+15XP)", use_container_width=True):
+                dados["limites_diarios"]["noticias"] = hoje_str
+                core.alterar_valor(dados, "Noticias", 5, 15, "soma")
+
+    # ==========================================
+    # TAREFAS GERAIS
+    # ==========================================
+    with st.expander("🏠 Tarefas Gerais e Operacionais", expanded=False):
         config_ganhos = {
             "Pomodoro (Manual)": (15, 10), "Tópicos Concluídos": (30, 50),
             "Banho / Dentes": (5, 5), "Lixo": (5, 20),
-            "Lavar roupas": (10, 10), "Limpar casa": (100, 100), "Fazer comida": (5, 5),
-            "Atualizar agenda": (1, 2)
+            "Lavar roupas": (10, 10), "Limpar casa": (100, 100), "Fazer comida": (5, 5)
         }
         for nome, (s, x) in config_ganhos.items():
             s_final, x_final = s, x
@@ -46,28 +112,13 @@ def renderizar(dados):
                 core.alterar_valor(dados, nome_chave, s_final, x_final, "soma")
             if c_rev.button("➖", key=f"rev_{nome}", use_container_width=True):
                 core.alterar_valor(dados, nome_chave, s_final, x_final, "subtracao")
-            c_cap.caption(f"Feitos: {dados['contadores'].get(nome_chave, 0)}")
-            
-        st.markdown("---")
-        c_not, c_pag = st.columns(2)
-        with c_not:
-            if dados["limites_diarios"]["noticias"] == hoje_str:
-                st.button("📰 Notícias (Lido)", disabled=True, use_container_width=True)
-            else:
-                if st.button("📰 Notícias (+5$/+15XP)", use_container_width=True):
-                    dados["limites_diarios"]["noticias"] = hoje_str
-                    core.alterar_valor(dados, "Noticias", 5, 15, "soma")
-        with c_pag:
-            if dados["limites_diarios"]["paginas"] == hoje_str:
-                st.button("📖 10 Páginas (Lido)", disabled=True, use_container_width=True)
-            else:
-                if st.button("📖 10 Pág. (+10$/+15XP)", use_container_width=True):
-                    dados["limites_diarios"]["paginas"] = hoje_str
-                    core.alterar_valor(dados, "Paginas", 10, 15, "soma")
+            c_cap.caption(f"Registros: {dados['contadores'].get(nome_chave, 0)}")
 
     st.divider()
 
-    # POMODORO
+    # ==========================================
+    # POMODORO / CRONÔMETRO PROGRESSIVO
+    # ==========================================
     semana_passada_str = str(agora_br.date() - timedelta(days=7))
     p_hoje = dados["historico_diario"].get(hoje_str, {}).get("pomodoros", 0.0)
     p_passado = dados["historico_diario"].get(semana_passada_str, {}).get("pomodoros", 0.0)
@@ -138,7 +189,9 @@ def renderizar(dados):
         </div>
     """, unsafe_allow_html=True)
 
-    # TODO LIST
+    # ==========================================
+    # TO-DO LIST
+    # ==========================================
     st.divider()
     st.markdown("<h3 style='text-align: center;'>📝 Lista de Tarefas</h3>", unsafe_allow_html=True)
 
