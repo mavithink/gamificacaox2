@@ -18,6 +18,7 @@ def carregar_dados():
                 "ultimo_acordar_cedo": str(agora_br.date() - timedelta(days=1)),
                 "ultimo_ghost_check": str(agora_br.date() - timedelta(days=1)),
                 "ultima_verificacao_estudo": str(agora_br.date()),
+                "ultima_verificacao_aula": str(agora_br.date()),
                 "contadores": {},
                 "sorte_dia": {"data": "", "efeito": None},
                 "ultima_punicao_data": "",
@@ -60,6 +61,7 @@ def carregar_dados():
         "ultimo_acordar_cedo": str(agora_br.date() - timedelta(days=1)),
         "ultimo_ghost_check": str(agora_br.date() - timedelta(days=1)),
         "ultima_verificacao_estudo": str(agora_br.date()),
+        "ultima_verificacao_aula": str(agora_br.date()),
         "sorte_dia": {"data": "", "efeito": None},
         "ultima_punicao_data": "",
         "historico_diario": {},
@@ -109,6 +111,26 @@ def verificar_penalidade_estudo(dados):
                 avisos.append(f"⚠️ Penalidade aplicada: Você não registrou nenhum estudo no dia {dia_str}. (-50$)")
             ultima_verif += timedelta(days=1)
         dados["ultima_verificacao_estudo"] = str(hoje)
+        salvar_dados(dados)
+    return avisos
+
+def verificar_penalidade_aula(dados):
+    agora_br = datetime.utcnow() - timedelta(hours=3)
+    hoje = agora_br.date()
+    ultima_verif_str = dados.get("ultima_verificacao_aula", str(hoje))
+    ultima_verif = datetime.strptime(ultima_verif_str, "%Y-%m-%d").date()
+    
+    avisos = []
+    if ultima_verif < hoje:
+        while ultima_verif < hoje:
+            if ultima_verif.weekday() < 5: 
+                dia_str = str(ultima_verif)
+                foi_aula = dados.get("historico_diario", {}).get(dia_str, {}).get("aula_confirmada", False)
+                if not foi_aula:
+                    dados["saldo"] -= 60
+                    avisos.append(f"⚠️ Penalidade aplicada: Falta não justificada/ausência de check-in na aula do dia {dia_str}. (-60$)")
+            ultima_verif += timedelta(days=1)
+        dados["ultima_verificacao_aula"] = str(hoje)
         salvar_dados(dados)
     return avisos
 
