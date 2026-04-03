@@ -43,9 +43,56 @@ if dados['xp'] >= core.XP_POR_NIVEL:
     core.salvar_dados(dados)
     st.rerun()
 
+# ==========================================
+# BARRA LATERAL (NAVEGAÇÃO E STATUS)
+# ==========================================
 st.sidebar.title("Navegação")
 pagina = st.sidebar.radio("Ir para:", ["Painel Principal", "Mente e Rotina", "Gastos", "Cultura", "Extras"])
 
+# Cálculos para o Card da Barra Lateral
+agora_br = datetime.utcnow() - timedelta(hours=3)
+hoje_str = str(agora_br.date())
+p_hoje = dados.get("historico_diario", {}).get(hoje_str, {}).get("pomodoros", 0.0)
+horas_hoje = (p_hoje * 42) / 60
+data_formatada = agora_br.strftime("%d/%m/%Y")
+
+# Card em Destaque na Barra Lateral
+st.sidebar.markdown(f"""
+    <div style="background-color: #1a1a2e; padding: 20px; border-radius: 12px; border: 2px solid #464b5d; text-align: center; margin-top: 40px; box-shadow: 0 8px 16px rgba(0,0,0,0.5);">
+        <p style="color: #8a8a9d; margin: 0 0 10px 0; font-size: 14px; font-weight: bold; letter-spacing: 2px;">{data_formatada}</p>
+        <h2 style="color: #FFD700; margin: 0; font-size: 36px; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);">💰 {dados['saldo']} $</h2>
+        <hr style="border-color: #2e2e48; margin: 15px 0;">
+        <h4 style="color: #00E5FF; margin: 0; text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);">⏱️ {horas_hoje:.1f}h estudadas</h4>
+    </div>
+""", unsafe_allow_html=True)
+
+st.sidebar.divider()
+if st.sidebar.button("Resetar Tudo"):
+    agora_reset = datetime.utcnow() - timedelta(hours=3)
+    st.session_state.dados = {
+        "saldo": 0, "xp": 0, "nivel": 1, "cupons": 0, "contadores": {}, "streak": 0,
+        "ultima_atividade": str(agora_reset.date() - timedelta(days=1)),
+        "ultimo_registro_full": str(agora_reset),
+        "ultimo_acordar_cedo": str(agora_reset.date() - timedelta(days=1)),
+        "ultimo_ghost_check": str(agora_reset.date() - timedelta(days=1)),
+        "ultima_verificacao_estudo": str(agora_reset.date()),
+        "sorte_dia": {"data": "", "efeito": None},
+        "ultima_punicao_data": "",
+        "historico_diario": {},
+        "missoes_diarias": {"data": "", "missoes": []},
+        "limites_diarios": {"noticias": "", "paginas": ""},
+        "cultura": {"mes_referencia": agora_reset.strftime("%Y-%m"), "filmes": [], "livros": []},
+        "conquistas": {
+            "madrugador": {"atual": 0, "total": 10, "completadas": 0, "ultima_data": str(agora_reset.date() - timedelta(days=1)), "data_conclusao": ""},
+            "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(agora_reset.date()), "data_conclusao": ""}
+        }
+    }
+    core.salvar_dados(st.session_state.dados)
+    st.rerun()
+
+# ==========================================
+# ROTEAMENTO DE PÁGINAS
+# ==========================================
 if pagina == "Painel Principal":
     st.title("📊 Painel Principal")
     
@@ -120,27 +167,3 @@ elif pagina == "Cultura":
     cultura.renderizar(dados)
 elif pagina == "Extras":
     extras.renderizar(dados)
-
-st.sidebar.divider()
-if st.sidebar.button("Resetar Tudo"):
-    agora_reset = datetime.utcnow() - timedelta(hours=3)
-    st.session_state.dados = {
-        "saldo": 0, "xp": 0, "nivel": 1, "cupons": 0, "contadores": {}, "streak": 0,
-        "ultima_atividade": str(agora_reset.date() - timedelta(days=1)),
-        "ultimo_registro_full": str(agora_reset),
-        "ultimo_acordar_cedo": str(agora_reset.date() - timedelta(days=1)),
-        "ultimo_ghost_check": str(agora_reset.date() - timedelta(days=1)),
-        "ultima_verificacao_estudo": str(agora_reset.date()),
-        "sorte_dia": {"data": "", "efeito": None},
-        "ultima_punicao_data": "",
-        "historico_diario": {},
-        "missoes_diarias": {"data": "", "missoes": []},
-        "limites_diarios": {"noticias": "", "paginas": ""},
-        "cultura": {"mes_referencia": agora_reset.strftime("%Y-%m"), "filmes": [], "livros": []},
-        "conquistas": {
-            "madrugador": {"atual": 0, "total": 10, "completadas": 0, "ultima_data": str(agora_reset.date() - timedelta(days=1)), "data_conclusao": ""},
-            "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(agora_reset.date()), "data_conclusao": ""}
-        }
-    }
-    core.salvar_dados(st.session_state.dados)
-    st.rerun()
