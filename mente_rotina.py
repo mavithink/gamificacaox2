@@ -21,7 +21,7 @@ def salvar_tarefas(tarefas):
     requests.put(FIREBASE_URL_TAREFAS, json=tarefas)
 
 def renderizar(dados):
-    st.title("🧠 Mente e Rotaina")
+    st.title("🧠 Mente e Rotina")
     sorte_ativa = dados.get("sorte_dia", {}).get("efeito")
     agora_br = datetime.utcnow() - timedelta(hours=3)
     hoje_str = str(agora_br.date())
