@@ -1,18 +1,18 @@
 import streamlit as st
-from datetime import datetime, timedelta
+import core
+from datetime import datetime
 
-def renderizar_gastos(dados, salvar_dados_callback, sorte_ativa):
-    st.title("💸 Gastos e Loja")
-    st.markdown("Gerencie suas recompensas e aplique penalidades por quebras de rotina.")
+def renderizar(dados):
+    st.title("🛒 Loja e Gastos")
+    sorte_ativa = dados["sorte_dia"]["efeito"]
     
-    aplicar_desconto = st.toggle("Ativar Cupom (20% OFF)") if dados['cupons'] > 0 else False
-    
-    col_gastos, col_punicao = st.columns(2)
+    aplicar_desconto = st.toggle(f"Ativar Cupom (20% OFF) - Possui: {dados['cupons']}") if dados['cupons'] > 0 else False
 
-    with col_gastos:
-        st.subheader("🛒 Loja de Recompensas")
+    col_loja, col_punicao = st.columns(2)
+
+    with col_loja:
+        st.subheader("Itens Disponíveis")
         itens_loja = {"60m de Jogo": 30, "Delivery": 250, "Cosmético": 1200, "Ver filme": 50}
-        
         for item, preco_base in itens_loja.items():
             preco_final = preco_base
             if sorte_ativa == "Inflação": preco_final = int(preco_final * 1.2)
@@ -24,16 +24,15 @@ def renderizar_gastos(dados, salvar_dados_callback, sorte_ativa):
                     dados['saldo'] -= preco_final
                     if aplicar_desconto: dados['cupons'] -= 1
                     dados["contadores"][f"Gasto_{item}"] = dados["contadores"].get(f"Gasto_{item}", 0) + 1
-                    salvar_dados_callback(dados)
+                    core.salvar_dados(dados)
                     st.rerun()
                 else: 
                     st.error("Saldo insuficiente!")
-            st.caption(f"Comprados: {dados['contadores'].get(f'Gasto_{item}', 0)}")
+            st.caption(f"Requisitados: {dados['contadores'].get(f'Gasto_{item}', 0)}")
 
     with col_punicao:
-        st.subheader("⚠️ Punições Manuais")
+        st.subheader("⚠️ Punições")
         punicoes = {"Rede Social": 25, "Gasto Inútil": 100}
-        
         for p, v in punicoes.items():
             v_final = v * 3 if sorte_ativa == "Não faça isso" else v
             if st.button(f"{p} (-{v_final}$)", use_container_width=True):
@@ -41,6 +40,6 @@ def renderizar_gastos(dados, salvar_dados_callback, sorte_ativa):
                 dados["contadores"][f"P_{p}"] = dados["contadores"].get(f"P_{p}", 0) + 1
                 dados["ultima_punicao_data"] = str(datetime.utcnow().date())
                 dados["conquistas"]["incorruptivel"]["atual"] = 0
-                salvar_dados_callback(dados)
+                core.salvar_dados(dados)
                 st.rerun()
             st.caption(f"Ocorrências: {dados['contadores'].get(f'P_{p}', 0)}")
