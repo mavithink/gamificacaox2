@@ -5,6 +5,7 @@ import os
 import random
 import time
 import pandas as pd
+import streamlit.components.v1 as components
 from datetime import datetime, timedelta
 from todo_list import renderizar_todo_list
 
@@ -14,16 +15,18 @@ XP_POR_NIVEL = 300
 FIREBASE_URL_DADOS = "https://gamix2-57898-default-rtdb.firebaseio.com/status_usuario.json"
 
 def carregar_dados():
+    agora_br = datetime.utcnow() - timedelta(hours=3)
     try:
         resposta = requests.get(FIREBASE_URL_DADOS)
         if resposta.status_code == 200 and resposta.json() is not None:
             dados = resposta.json()
             novas_chaves = {
                 "streak": 0,
-                "ultima_atividade": str(datetime.now().date() - timedelta(days=1)),
-                "ultimo_registro_full": str(datetime.now()),
-                "ultimo_acordar_cedo": str(datetime.now().date() - timedelta(days=1)),
-                "ultimo_ghost_check": str(datetime.now().date() - timedelta(days=1)),
+                "ultima_atividade": str(agora_br.date() - timedelta(days=1)),
+                "ultimo_registro_full": str(agora_br),
+                "ultimo_acordar_cedo": str(agora_br.date() - timedelta(days=1)),
+                "ultimo_ghost_check": str(agora_br.date() - timedelta(days=1)),
+                "ultima_verificacao_estudo": str(agora_br.date()),
                 "contadores": {},
                 "sorte_dia": {"data": "", "efeito": None},
                 "ultima_punicao_data": "",
@@ -31,7 +34,7 @@ def carregar_dados():
                 "missoes_diarias": {"data": "", "missoes": []},
                 "limites_diarios": {"noticias": "", "paginas": ""},
                 "cultura": {
-                    "mes_referencia": datetime.now().strftime("%Y-%m"),
+                    "mes_referencia": agora_br.strftime("%Y-%m"),
                     "filmes": [],
                     "livros": []
                 }
@@ -39,9 +42,8 @@ def carregar_dados():
             for k, v in novas_chaves.items():
                 if k not in dados: dados[k] = v
             
-            # Restauração estrutural contra deleção de listas vazias pelo Firebase
             if "cultura" not in dados:
-                dados["cultura"] = {"mes_referencia": datetime.now().strftime("%Y-%m"), "filmes": [], "livros": []}
+                dados["cultura"] = {"mes_referencia": agora_br.strftime("%Y-%m"), "filmes": [], "livros": []}
             if "filmes" not in dados["cultura"]:
                 dados["cultura"]["filmes"] = []
             if "livros" not in dados["cultura"]:
@@ -53,8 +55,8 @@ def carregar_dados():
                 
             if "conquistas" not in dados:
                 dados["conquistas"] = {
-                    "madrugador": {"atual": 0, "total": 10, "completadas": 0, "ultima_data": str(datetime.now().date() - timedelta(days=1)), "data_conclusao": ""},
-                    "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(datetime.now().date()), "data_conclusao": ""}
+                    "madrugador": {"atual": 0, "total": 10, "completadas": 0, "ultima_data": str(agora_br.date() - timedelta(days=1)), "data_conclusao": ""},
+                    "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(agora_br.date()), "data_conclusao": ""}
                 }
             return dados
     except Exception:
@@ -62,23 +64,24 @@ def carregar_dados():
         
     return {
         "saldo": 0, "xp": 0, "nivel": 1, "cupons": 0, "contadores": {}, "streak": 0,
-        "ultima_atividade": str(datetime.now().date() - timedelta(days=1)),
-        "ultimo_registro_full": str(datetime.now()),
-        "ultimo_acordar_cedo": str(datetime.now().date() - timedelta(days=1)),
-        "ultimo_ghost_check": str(datetime.now().date() - timedelta(days=1)),
+        "ultima_atividade": str(agora_br.date() - timedelta(days=1)),
+        "ultimo_registro_full": str(agora_br),
+        "ultimo_acordar_cedo": str(agora_br.date() - timedelta(days=1)),
+        "ultimo_ghost_check": str(agora_br.date() - timedelta(days=1)),
+        "ultima_verificacao_estudo": str(agora_br.date()),
         "sorte_dia": {"data": "", "efeito": None},
         "ultima_punicao_data": "",
         "historico_diario": {},
         "missoes_diarias": {"data": "", "missoes": []},
         "limites_diarios": {"noticias": "", "paginas": ""},
         "cultura": {
-            "mes_referencia": datetime.now().strftime("%Y-%m"),
+            "mes_referencia": agora_br.strftime("%Y-%m"),
             "filmes": [],
             "livros": []
         },
         "conquistas": {
-            "madrugador": {"atual": 0, "total": 10, "completadas": 0, "ultima_data": str(datetime.now().date() - timedelta(days=1)), "data_conclusao": ""},
-            "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(datetime.now().date()), "data_conclusao": ""}
+            "madrugador": {"atual": 0, "total": 10, "completadas": 0, "ultima_data": str(agora_br.date() - timedelta(days=1)), "data_conclusao": ""},
+            "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(agora_br.date()), "data_conclusao": ""}
         }
     }
         
@@ -87,7 +90,7 @@ def salvar_dados(dados):
     requests.put(FIREBASE_URL_DADOS, json=dados)
 
 def verificar_estagnacao(dados):
-    agora = datetime.now()
+    agora = datetime.utcnow() - timedelta(hours=3)
     ultima = datetime.fromisoformat(dados["ultimo_registro_full"])
     estagnado = agora - ultima > timedelta(hours=24)
     if estagnado:
@@ -100,8 +103,30 @@ def verificar_estagnacao(dados):
             salvar_dados(dados)
     return estagnado
 
+def verificar_penalidade_estudo(dados):
+    agora_br = datetime.utcnow() - timedelta(hours=3)
+    hoje = agora_br.date()
+    ultima_verif_str = dados.get("ultima_verificacao_estudo", str(hoje))
+    ultima_verif = datetime.strptime(ultima_verif_str, "%Y-%m-%d").date()
+    
+    avisos = []
+    if ultima_verif < hoje:
+        while ultima_verif < hoje:
+            dia_str = str(ultima_verif)
+            p_dia = dados.get("historico_diario", {}).get(dia_str, {}).get("pomodoros", 0.0)
+            
+            if p_dia <= 0.0:
+                dados["saldo"] -= 50
+                avisos.append(f"⚠️ Penalidade aplicada: Você não registrou nenhum estudo no dia {dia_str}. (-50$)")
+                
+            ultima_verif += timedelta(days=1)
+            
+        dados["ultima_verificacao_estudo"] = str(hoje)
+        salvar_dados(dados)
+    return avisos
+
 def verificar_ghost(dados):
-    hoje = datetime.now().date()
+    hoje = (datetime.utcnow() - timedelta(hours=3)).date()
     ultimo_check_str = dados.get("ultimo_ghost_check", str(hoje - timedelta(days=1)))
     ultimo_check = datetime.strptime(ultimo_check_str, "%Y-%m-%d").date()
     
@@ -127,7 +152,7 @@ def verificar_ghost(dados):
     return avisos
 
 def atualizar_incorruptivel(dados):
-    hoje = datetime.now().date()
+    hoje = (datetime.utcnow() - timedelta(hours=3)).date()
     ultima_verif_str = dados["conquistas"]["incorruptivel"].get("ultima_verificacao", str(hoje))
     ultima_verif = datetime.strptime(ultima_verif_str, "%Y-%m-%d").date()
     
@@ -148,14 +173,14 @@ def atualizar_incorruptivel(dados):
     dados["conquistas"]["incorruptivel"]["ultima_verificacao"] = str(hoje)
 
 def verificar_reset_madrugador(dados):
-    hoje = datetime.now().date()
+    hoje = (datetime.utcnow() - timedelta(hours=3)).date()
     ultima_str = dados["conquistas"]["madrugador"]["ultima_data"]
     ultima = datetime.strptime(ultima_str, "%Y-%m-%d").date()
     if hoje > ultima + timedelta(days=1):
         dados["conquistas"]["madrugador"]["atual"] = 0
 
 def verificar_mes_cultura(dados):
-    mes_atual = datetime.now().strftime("%Y-%m")
+    mes_atual = (datetime.utcnow() - timedelta(hours=3)).strftime("%Y-%m")
     if dados["cultura"]["mes_referencia"] != mes_atual:
         qtd_filmes = len(dados["cultura"]["filmes"])
         qtd_livros = len(dados["cultura"]["livros"])
@@ -173,7 +198,7 @@ def verificar_mes_cultura(dados):
         salvar_dados(dados)
 
 def aplicar_sorte_diaria(dados):
-    hoje = str(datetime.now().date())
+    hoje = str((datetime.utcnow() - timedelta(hours=3)).date())
     if dados["sorte_dia"]["data"] != hoje:
         opcoes = [
             ("Dia de Sorte", "🍀 +5 moedas por cada Pomodoro hoje"),
@@ -188,7 +213,7 @@ def aplicar_sorte_diaria(dados):
         salvar_dados(dados)
 
 def gerar_missoes_diarias(dados):
-    hoje = str(datetime.now().date())
+    hoje = str((datetime.utcnow() - timedelta(hours=3)).date())
     if dados.get("missoes_diarias", {}).get("data") != hoje:
         pool_missoes = [
             {"desc": "Faça 3 Pomodoros hoje", "s": 20, "x": 15},
@@ -217,12 +242,12 @@ def gerar_missoes_diarias(dados):
         salvar_dados(dados)
 
 def alterar_valor(dados, chave, v_saldo, v_xp, operacao="soma", qtd_sessoes=1.0):
-    hoje_str = str(datetime.now().date())
+    hoje_str = str((datetime.utcnow() - timedelta(hours=3)).date())
     if hoje_str not in dados["historico_diario"]:
         dados["historico_diario"][hoje_str] = {"pomodoros": 0.0, "moedas_ganhas": 0}
 
     if operacao == "soma":
-        hoje = datetime.now().date()
+        hoje = (datetime.utcnow() - timedelta(hours=3)).date()
         ultima = datetime.strptime(dados["ultima_atividade"], "%Y-%m-%d").date()
         if dados["streak"] == 0 or hoje == ultima + timedelta(days=1):
             dados["streak"] += 1
@@ -237,7 +262,7 @@ def alterar_valor(dados, chave, v_saldo, v_xp, operacao="soma", qtd_sessoes=1.0)
         dados['saldo'] += v_saldo
         dados['xp'] += v_xp
         dados["contadores"][chave] = dados["contadores"].get(chave, 0) + 1
-        dados["ultimo_registro_full"] = str(datetime.now())
+        dados["ultimo_registro_full"] = str(datetime.utcnow() - timedelta(hours=3))
         
         dados["historico_diario"][hoje_str]["moedas_ganhas"] += v_saldo
         if chave == "Pomodoro":
@@ -262,8 +287,16 @@ st.set_page_config(page_title="G", page_icon="🤖", layout="wide")
 if 'dados' not in st.session_state:
     st.session_state.dados = carregar_dados()
 
+if "inicio_cronometro" not in st.session_state:
+    st.session_state.inicio_cronometro = None
+
 dados = st.session_state.dados
+
 estagnado = verificar_estagnacao(dados)
+
+avisos_penalidade = verificar_penalidade_estudo(dados)
+for aviso in avisos_penalidade:
+    st.error(aviso)
 
 avisos_ghost = verificar_ghost(dados)
 for aviso in avisos_ghost:
@@ -287,8 +320,9 @@ pagina = st.sidebar.radio("Ir para:", ["Painel Principal", "Estudo", "Cultura"])
 if pagina == "Estudo":
     st.title("📚 Painel de Estudo")
     
-    hoje_str = str(datetime.now().date())
-    semana_passada_str = str(datetime.now().date() - timedelta(days=7))
+    agora_br = datetime.utcnow() - timedelta(hours=3)
+    hoje_str = str(agora_br.date())
+    semana_passada_str = str(agora_br.date() - timedelta(days=7))
     
     p_hoje = dados["historico_diario"].get(hoje_str, {}).get("pomodoros", 0.0)
     p_passado = dados["historico_diario"].get(semana_passada_str, {}).get("pomodoros", 0.0)
@@ -306,45 +340,58 @@ if pagina == "Estudo":
     st.caption(f"Meta para vencer o Ghost hoje: **{meta_ghost:.1f} sessões equivalentes**. (Recompensa: +30$)")
     st.divider()
 
-    st.markdown("<h2 style='text-align: center;'>⏱️ Timer Pomodoro</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>⏱️ Timer Progressivo</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #8a8a9d;'>Mantenha esta página aberta. O tempo continuará contando em background.</p>", unsafe_allow_html=True)
     
-    c_time_sel1, c_time_sel2, c_time_sel3 = st.columns([1, 1, 1])
-    with c_time_sel2:
-        tempo_minutos = st.number_input("Duração da sessão (minutos)", min_value=1, max_value=300, value=42, step=1)
+    if st.session_state.inicio_cronometro is None:
+        col_vazia1, col_btn_timer, col_vazia2 = st.columns([1, 1, 1])
+        with col_btn_timer:
+            if st.button("▶️ Iniciar Estudo", use_container_width=True):
+                st.session_state.inicio_cronometro = time.time()
+                st.rerun()
+    else:
+        components.html(f"""
+        <div id="clock" style="color:#ff4b4b; font-size: 100px; text-align: center; font-family: sans-serif; font-weight: bold; margin-top: 20px;">00:00</div>
+        <script>
+            var start = {st.session_state.inicio_cronometro};
+            setInterval(function() {{
+                var now = Date.now() / 1000;
+                var diff = Math.floor(now - start);
+                var m = Math.floor(diff / 60).toString().padStart(2, '0');
+                var s = (diff % 60).toString().padStart(2, '0');
+                document.getElementById('clock').innerHTML = m + ":" + s;
+            }}, 1000);
+        </script>
+        """, height=160)
         
-    st.markdown("<p style='text-align: center; color: #8a8a9d;'>Mantenha esta página aberta. Sair da aba cancelará a contagem.</p>", unsafe_allow_html=True)
-    
-    placeholder = st.empty()
-    placeholder.markdown(f"<h1 style='text-align: center; font-size: 100px; padding: 30px 0;'>{tempo_minutos:02d}:00</h1>", unsafe_allow_html=True)
-    
-    col_vazia1, col_btn_timer, col_vazia2 = st.columns([1, 1, 1])
-    with col_btn_timer:
-        iniciar = st.button("Iniciar Foco", use_container_width=True)
-        
-    if iniciar:
-        tempo_total = int(tempo_minutos * 60)
-        for i in range(tempo_total, -1, -1):
-            mins, secs = divmod(i, 60)
-            placeholder.markdown(f"<h1 style='text-align: center; font-size: 100px; padding: 30px 0; color: #ff4b4b;'>{mins:02d}:{secs:02d}</h1>", unsafe_allow_html=True)
-            time.sleep(1)
-            
-        fator_proporcao = tempo_minutos / 42.0
-        
-        s_base = 15
-        if sorte_ativa == "Dia de Sorte":
-            s_base += 5
-            
-        s_final = int(s_base * fator_proporcao)
-        x_final = int(10 * fator_proporcao)
-        
-        alterar_valor(dados, "Pomodoro", s_final, x_final, "soma", qtd_sessoes=fator_proporcao)
-        placeholder.markdown("<h1 style='text-align: center; font-size: 60px; padding: 30px 0; color: #00E676;'>Concluído!</h1>", unsafe_allow_html=True)
-        time.sleep(2)
-        st.rerun()
+        col_stop, col_cancel = st.columns(2)
+        with col_stop:
+            if st.button("⏹️ Concluir e Salvar", use_container_width=True):
+                decorrido_segundos = time.time() - st.session_state.inicio_cronometro
+                minutos_estudados = decorrido_segundos / 60.0
+                st.session_state.inicio_cronometro = None
+                
+                fator_proporcao = minutos_estudados / 42.0
+                
+                s_base = 15
+                if sorte_ativa == "Dia de Sorte":
+                    s_base += 5
+                    
+                s_final = int(s_base * fator_proporcao)
+                x_final = int(10 * fator_proporcao)
+                
+                alterar_valor(dados, "Pomodoro", s_final, x_final, "soma", qtd_sessoes=fator_proporcao)
+                st.success(f"Concluído! {minutos_estudados:.1f} minutos registrados.")
+                time.sleep(2)
+                st.rerun()
+        with col_cancel:
+            if st.button("❌ Cancelar", use_container_width=True):
+                st.session_state.inicio_cronometro = None
+                st.rerun()
 
     renderizar_todo_list()
 
-    mes_atual = datetime.now().strftime("%Y-%m")
+    mes_atual = agora_br.strftime("%Y-%m")
     total_pomodoros_mes = sum(v.get("pomodoros", 0.0) for k, v in dados.get("historico_diario", {}).items() if k.startswith(mes_atual))
     horas_mes = (total_pomodoros_mes * 42) / 60
 
@@ -397,6 +444,11 @@ elif pagina == "Cultura":
 
 elif pagina == "Painel Principal":
     st.title("🎮 Sistema de Gamificação")
+    
+    hoje_br = str((datetime.utcnow() - timedelta(hours=3)).date())
+    p_hoje = dados.get("historico_diario", {}).get(hoje_br, {}).get("pomodoros", 0.0)
+    if p_hoje <= 0.0:
+        st.error("🚨 **AVISO URGENTE:** Você ainda não registrou nenhum tempo de estudo hoje! Se o dia virar sem estudos, uma penalidade de -50$ será aplicada. Vá para a aba 'Estudo' e inicie o cronômetro.")
 
     st.markdown(f"""
     <style>
@@ -450,22 +502,21 @@ elif pagina == "Painel Principal":
             st.caption(f"Concluídos: {dados['contadores'].get(nome_chave, 0)}")
 
         st.markdown("##### 📚 Culturais Diários (1x)")
-        hoje_str = str(datetime.now().date())
         c_not, c_pag = st.columns(2)
         
         with c_not:
-            if dados["limites_diarios"]["noticias"] == hoje_str:
+            if dados["limites_diarios"]["noticias"] == hoje_br:
                 st.button("📰 Notícias", disabled=True, use_container_width=True)
             else:
                 if st.button("📰 Notícias (+5$/+15XP)", use_container_width=True):
-                    dados["limites_diarios"]["noticias"] = hoje_str
+                    dados["limites_diarios"]["noticias"] = hoje_br
                     alterar_valor(dados, "Noticias", 5, 15, "soma")
         with c_pag:
-            if dados["limites_diarios"]["paginas"] == hoje_str:
+            if dados["limites_diarios"]["paginas"] == hoje_br:
                 st.button("📖 10 Páginas", disabled=True, use_container_width=True)
             else:
                 if st.button("📖 10 Pág. (+10$/+15XP)", use_container_width=True):
-                    dados["limites_diarios"]["paginas"] = hoje_str
+                    dados["limites_diarios"]["paginas"] = hoje_br
                     alterar_valor(dados, "Paginas", 10, 15, "soma")
 
     with col_gastos:
@@ -495,7 +546,7 @@ elif pagina == "Painel Principal":
             if st.button(f"{p} (-{v_final}$)", use_container_width=True):
                 dados['saldo'] -= v_final
                 dados["contadores"][f"P_{p}"] = dados["contadores"].get(f"P_{p}", 0) + 1
-                dados["ultima_punicao_data"] = str(datetime.now().date())
+                dados["ultima_punicao_data"] = str(datetime.utcnow().date())
                 dados["conquistas"]["incorruptivel"]["atual"] = 0
                 salvar_dados(dados)
                 st.rerun()
@@ -504,10 +555,9 @@ elif pagina == "Painel Principal":
     # ACORDAR CEDO
     st.divider()
     
-    # Ajuste de fuso horário para UTC-3 (Horário de Brasília)
-    agora_br = datetime.utcnow() - timedelta(hours=3)
-    hoje_dt = agora_br.date()
-    agora = agora_br.time()
+    agora_dt_br = datetime.utcnow() - timedelta(hours=3)
+    hoje_dt = agora_dt_br.date()
+    agora_time = agora_dt_br.time()
     limite = datetime.strptime("06:15", "%H:%M").time()
 
     c_ac_1, c_ac_2, c_ac_3 = st.columns([1, 2, 1])
@@ -517,7 +567,7 @@ elif pagina == "Painel Principal":
             st.button("☀️ Acordar Cedo (Resgatado)", disabled=True, use_container_width=True)
         else:
             if st.button("☀️ Acordar Cedo (+25$/ +25XP)", use_container_width=True):
-                if agora <= limite:
+                if agora_time <= limite:
                     dados["ultimo_acordar_cedo"] = str(hoje_dt)
                     
                     dados["conquistas"]["madrugador"]["ultima_data"] = str(hoje_dt)
@@ -530,7 +580,8 @@ elif pagina == "Painel Principal":
                     
                     alterar_valor(dados, "Acordar Cedo", 25, 25, "soma")
                 else: 
-                    st.error(f"Passou do horário! O sistema registrou: {agora.strftime('%H:%M')}")
+                    st.error(f"Passou do horário! O sistema registrou: {agora_time.strftime('%H:%M')}")
+    
     # MISSÕES DIÁRIAS
     st.divider()
     st.markdown("<h3 style='text-align: center;'>🎯 Missões Diárias</h3>", unsafe_allow_html=True)
@@ -623,25 +674,27 @@ if dados['xp'] >= XP_POR_NIVEL:
 
 st.sidebar.divider()
 if st.sidebar.button("Resetar Tudo"):
+    agora_reset = datetime.utcnow() - timedelta(hours=3)
     st.session_state.dados = {
         "saldo": 0, "xp": 0, "nivel": 1, "cupons": 0, "contadores": {}, "streak": 0,
-        "ultima_atividade": str(datetime.now().date() - timedelta(days=1)),
-        "ultimo_registro_full": str(datetime.now()),
-        "ultimo_acordar_cedo": str(datetime.now().date() - timedelta(days=1)),
-        "ultimo_ghost_check": str(datetime.now().date() - timedelta(days=1)),
+        "ultima_atividade": str(agora_reset.date() - timedelta(days=1)),
+        "ultimo_registro_full": str(agora_reset),
+        "ultimo_acordar_cedo": str(agora_reset.date() - timedelta(days=1)),
+        "ultimo_ghost_check": str(agora_reset.date() - timedelta(days=1)),
+        "ultima_verificacao_estudo": str(agora_reset.date()),
         "sorte_dia": {"data": "", "efeito": None},
         "ultima_punicao_data": "",
         "historico_diario": {},
         "missoes_diarias": {"data": "", "missoes": []},
         "limites_diarios": {"noticias": "", "paginas": ""},
         "cultura": {
-            "mes_referencia": datetime.now().strftime("%Y-%m"),
+            "mes_referencia": agora_reset.strftime("%Y-%m"),
             "filmes": [],
             "livros": []
         },
         "conquistas": {
-            "madrugador": {"atual": 0, "total": 10, "completadas": 0, "ultima_data": str(datetime.now().date() - timedelta(days=1)), "data_conclusao": ""},
-            "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(datetime.now().date()), "data_conclusao": ""}
+            "madrugador": {"atual": 0, "total": 10, "completadas": 0, "ultima_data": str(agora_reset.date() - timedelta(days=1)), "data_conclusao": ""},
+            "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(agora_reset.date()), "data_conclusao": ""}
         }
     }
     salvar_dados(st.session_state.dados)
