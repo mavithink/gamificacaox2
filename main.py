@@ -134,28 +134,46 @@ if pagina == "Painel Principal":
                 hoje_historico["aula_confirmada"] = True
                 core.alterar_valor(dados, "Presenca_Aula", 20, 10, "soma")
 
-    with st.expander("📅 Horário de Aulas da Semana", expanded=False):
-        st.markdown("""
-        **Segunda-feira**
-        * 08:00 - 10:00: Sistemas Operacionais (Auditório DC)
-        * 16:00 - 18:00: Algoritmos e Estruturas de Dados 2 (AT4-68)
+    # ==========================================
+    # NOVO QUADRO DE HORÁRIOS (MINIMALISTA)
+    # ==========================================
+    st.markdown("<h3 style='text-align: center; margin-top: 30px; margin-bottom: 20px;'>📅 Horário de Aulas da Semana</h3>", unsafe_allow_html=True)
+    
+    col_seg, col_ter, col_qua, col_qui, col_sex = st.columns(5)
+    
+    def card_aula(horario, materia, local, cor_borda):
+        return f"""
+        <div style="background-color: #1a1a2e; padding: 12px 8px; border-radius: 8px; border-top: 4px solid {cor_borda}; margin-bottom: 12px; font-size: 13px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <div style="color: #FFD700; font-weight: bold; margin-bottom: 6px;">{horario}</div>
+            <div style="color: white; font-weight: 600; line-height: 1.3; margin-bottom: 6px;">{materia}</div>
+            <div style="color: #8a8a9d; font-size: 11px;">📍 {local}</div>
+        </div>
+        """
 
-        **Terça-feira**
-        * 10:00 - 12:00: Álgebra Linear 1 (AT9-218)
-        * 16:00 - 18:00: Matemática Discreta (AT4-68)
+    with col_seg:
+        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #2e2e48; padding: 8px; border-radius: 5px; margin-bottom: 15px;'>Segunda</div>", unsafe_allow_html=True)
+        st.markdown(card_aula("08:00 - 10:00", "Sistemas Operacionais", "Auditório DC", "#ff4b4b"), unsafe_allow_html=True)
+        st.markdown(card_aula("16:00 - 18:00", "Algoritmos e Est. Dados 2", "AT4-68", "#00E5FF"), unsafe_allow_html=True)
 
-        **Quarta-feira**
-        * 10:00 - 12:00: Sistemas Operacionais (Auditório DC)
+    with col_ter:
+        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #2e2e48; padding: 8px; border-radius: 5px; margin-bottom: 15px;'>Terça</div>", unsafe_allow_html=True)
+        st.markdown(card_aula("10:00 - 12:00", "Álgebra Linear 1", "AT9-218", "#B388FF"), unsafe_allow_html=True)
+        st.markdown(card_aula("16:00 - 18:00", "Matemática Discreta", "AT4-68", "#00E676"), unsafe_allow_html=True)
 
-        **Quinta-feira**
-        * 08:00 - 10:00: Álgebra Linear 1 (AT7-164)
-        * 14:00 - 16:00: Matemática Discreta (AT4-68)
-        * 16:00 - 18:00: Algoritmos e Estruturas de Dados 2 (AT4-73)
+    with col_qua:
+        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #2e2e48; padding: 8px; border-radius: 5px; margin-bottom: 15px;'>Quarta</div>", unsafe_allow_html=True)
+        st.markdown(card_aula("10:00 - 12:00", "Sistemas Operacionais", "Auditório DC", "#ff4b4b"), unsafe_allow_html=True)
 
-        **Sexta-feira**
-        * 10:00 - 12:00: Sistemas Operacionais (DC-LE-3)
-        * 14:00 - 18:00: Empreendedores em Informática (AT9-212)
-        """)
+    with col_qui:
+        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #2e2e48; padding: 8px; border-radius: 5px; margin-bottom: 15px;'>Quinta</div>", unsafe_allow_html=True)
+        st.markdown(card_aula("08:00 - 10:00", "Álgebra Linear 1", "AT7-164", "#B388FF"), unsafe_allow_html=True)
+        st.markdown(card_aula("14:00 - 16:00", "Matemática Discreta", "AT4-68", "#00E676"), unsafe_allow_html=True)
+        st.markdown(card_aula("16:00 - 18:00", "Algoritmos e Est. Dados 2", "AT4-73", "#00E5FF"), unsafe_allow_html=True)
+
+    with col_sex:
+        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #2e2e48; padding: 8px; border-radius: 5px; margin-bottom: 15px;'>Sexta</div>", unsafe_allow_html=True)
+        st.markdown(card_aula("10:00 - 12:00", "Sistemas Operacionais", "DC-LE-3", "#ff4b4b"), unsafe_allow_html=True)
+        st.markdown(card_aula("14:00 - 18:00", "Empreendedores em Inf.", "AT9-212", "#FFD700"), unsafe_allow_html=True)
 
     st.divider()
 
