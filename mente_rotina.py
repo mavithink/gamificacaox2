@@ -18,7 +18,17 @@ def carregar_tarefas():
     return []
 
 def salvar_tarefas(tarefas):
-    requests.put(FIREBASE_URL_TAREFAS, json=tarefas)
+    for _ in range(3):
+        try:
+            resposta = requests.put(FIREBASE_URL_TAREFAS, json=tarefas, timeout=5)
+            if resposta.status_code == 200:
+                return True
+        except Exception:
+            time.sleep(0.5)
+            
+    st.error("🚨 **FALHA AO SALVAR:** As alterações na lista de tarefas não chegaram ao servidor. Tente novamente.")
+    st.stop()
+    return False
 
 def renderizar(dados):
     st.title("🧠 Mente e Rotina")
