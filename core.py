@@ -1,5 +1,7 @@
 import requests
 import random
+import time
+import streamlit as st
 from datetime import datetime, timedelta
 
 FIREBASE_URL_DADOS = "https://gamix2-57898-default-rtdb.firebaseio.com/status_usuario.json"
@@ -8,7 +10,7 @@ XP_POR_NIVEL = 300
 def carregar_dados():
     agora_br = datetime.utcnow() - timedelta(hours=3)
     try:
-        resposta = requests.get(FIREBASE_URL_DADOS)
+        resposta = requests.get(FIREBASE_URL_DADOS, timeout=10)
         if resposta.status_code == 200 and resposta.json() is not None:
             dados = resposta.json()
             novas_chaves = {
@@ -77,9 +79,20 @@ def carregar_dados():
             "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(agora_br.date()), "data_conclusao": ""}
         }
     }
-        
+
 def salvar_dados(dados):
-    requests.put(FIREBASE_URL_DADOS, json=dados)
+    """ Tenta salvar no Firebase. Se falhar após 3 tentativas, trava a tela. """
+    for _ in range(3):
+        try:
+            resposta = requests.put(FIREBASE_URL_DADOS, json=dados, timeout=5)
+            if resposta.status_code == 200:
+                return True
+        except Exception:
+            time.sleep(0.5)
+            
+    st.error("🚨 **FALHA DE SINCRONIZAÇÃO:** O servidor não confirmou o recebimento dos dados. Não recarregue a página, aguarde alguns segundos e tente clicar novamente na sua ação.")
+    st.stop()
+    return False
 
 def verificar_estagnacao(dados, session_state):
     agora = datetime.utcnow() - timedelta(hours=3)
@@ -262,7 +275,6 @@ def gerar_missoes_diarias(dados):
         salvar_dados(dados)
 
 def alterar_valor(dados, chave, v_saldo, v_xp, operacao="soma", qtd_sessoes=1.0, rerun=True):
-    import streamlit as st
     hoje_str = str((datetime.utcnow() - timedelta(hours=3)).date())
     if hoje_str not in dados["historico_diario"]:
         dados["historico_diario"][hoje_str] = {"pomodoros": 0.0, "moedas_ganhas": 0}
@@ -299,6 +311,5 @@ def alterar_valor(dados, chave, v_saldo, v_xp, operacao="soma", qtd_sessoes=1.0,
             if chave == "Pomodoro":
                 dados["historico_diario"][hoje_str]["pomodoros"] = max(0.0, dados["historico_diario"][hoje_str]["pomodoros"] - qtd_sessoes)
 
-    salvar_dados(dados)
-    if rerun:
+    if salvar_dados(dados) and rerun:
         st.rerun()
