@@ -503,8 +503,11 @@ elif pagina == "Painel Principal":
 
     # ACORDAR CEDO
     st.divider()
-    hoje_dt = datetime.now().date()
-    agora = datetime.now().time()
+    
+    # Ajuste de fuso horário para UTC-3 (Horário de Brasília)
+    agora_br = datetime.utcnow() - timedelta(hours=3)
+    hoje_dt = agora_br.date()
+    agora = agora_br.time()
     limite = datetime.strptime("06:15", "%H:%M").time()
 
     c_ac_1, c_ac_2, c_ac_3 = st.columns([1, 2, 1])
@@ -517,7 +520,6 @@ elif pagina == "Painel Principal":
                 if agora <= limite:
                     dados["ultimo_acordar_cedo"] = str(hoje_dt)
                     
-                    # A lógica da conquista deve vir antes de alterar_valor
                     dados["conquistas"]["madrugador"]["ultima_data"] = str(hoje_dt)
                     dados["conquistas"]["madrugador"]["atual"] += 1
                     if dados["conquistas"]["madrugador"]["atual"] >= 10:
@@ -527,9 +529,8 @@ elif pagina == "Painel Principal":
                         dados["conquistas"]["madrugador"]["atual"] = 0
                     
                     alterar_valor(dados, "Acordar Cedo", 25, 25, "soma")
-            else: 
-                st.error("Passou do horário!")
-
+                else: 
+                    st.error(f"Passou do horário! O sistema registrou: {agora.strftime('%H:%M')}")
     # MISSÕES DIÁRIAS
     st.divider()
     st.markdown("<h3 style='text-align: center;'>🎯 Missões Diárias</h3>", unsafe_allow_html=True)
