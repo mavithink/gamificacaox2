@@ -23,7 +23,7 @@ def renderizar(dados):
 
     with col_loja:
         st.subheader("Itens Disponíveis")
-        itens_loja = {"60m de Jogo": 30, "Delivery": 250, "Cosmético": 1200, "Ver filme": 50}
+        itens_loja = {"60m de Jogo": 30, "Delivery": 250, "Cosmético": 1200, "Ver filme": 50, "1 Ep": 10}
         for item, preco_base in itens_loja.items():
             preco_final = preco_base
             if sorte_ativa == "Inflação": preco_final = int(preco_final * 1.2)
