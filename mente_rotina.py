@@ -26,7 +26,7 @@ def salvar_tarefas(tarefas):
         except Exception:
             time.sleep(0.5)
             
-    st.error("🚨 **FALHA AO SALVAR:** As alterações na lista de tarefas não chegaram ao servidor. Tente novamente.")
+    st.error("🚨 **FALHA AO SALVAR:** As alterações na lista de tarefas não chegaram ao servidor.")
     st.stop()
     return False
 
@@ -36,7 +36,7 @@ def renderizar(dados):
     agora_br = datetime.utcnow() - timedelta(hours=3)
     hoje_str = str(agora_br.date())
 
-    # Garantia de estrutura para limites diários
+    # Garantia de estrutura para limites diários da Água
     if "limites_diarios" not in dados:
         dados["limites_diarios"] = {}
         
@@ -71,7 +71,7 @@ def renderizar(dados):
         else:
             if st.button(f"💧 Encher Garrafa (+2$/+2XP) [{count_agua}/3]", type="primary", use_container_width=True):
                 dados["limites_diarios"]["agua_count"] += 1
-                core.alterar_valor(dados, "Garrafa de Agua", 2, 2, "soma")
+                core.alterar_valor(dados, "Garrafa_Agua", 2, 2, "soma")
 
     # ==========================================
     # ROTINA DIÁRIA (1X)
@@ -91,7 +91,7 @@ def renderizar(dados):
         else:
             if st.button("📅 Atualizar Agenda (+1$/+2XP)", use_container_width=True):
                 dados["limites_diarios"]["agenda"] = hoje_str
-                core.alterar_valor(dados, "Atualizar agenda", 1, 2, "soma")
+                core.alterar_valor(dados, "Atualizar_Agenda", 1, 2, "soma")
                 
     with col_rotina2:
         if dados["limites_diarios"].get("noticias") == hoje_str:
@@ -105,23 +105,28 @@ def renderizar(dados):
     # TAREFAS GERAIS
     # ==========================================
     with st.expander("🏠 Tarefas Gerais e Operacionais", expanded=False):
+        # Separação entre o nome de exibição e a chave interna segura (sem barras ou espaços complexos)
         config_ganhos = {
-            "Pomodoro (Manual)": (15, 10), "Tópicos Concluídos": (30, 50),
-            "Banho / Dentes": (5, 5), "Lixo": (5, 20),
-            "Lavar roupas": (10, 10), "Limpar casa": (100, 100), "Fazer comida": (5, 5)
+            "Banho / Higiene Pessoal": ("Higiene_Pessoal", 5, 5),
+            "Tirar o Lixo": ("Lixo", 5, 20),
+            "Lavar Roupas": ("Lavar_Roupas", 10, 10),
+            "Limpar a Casa": ("Limpar_Casa", 100, 100),
+            "Fazer Comida": ("Fazer_Comida", 5, 5)
         }
-        for nome, (s, x) in config_ganhos.items():
+        
+        for display_name, (nome_chave, s, x) in config_ganhos.items():
             s_final, x_final = s, x
-            nome_chave = "Pomodoro" if "Pomodoro" in nome else nome
-            if nome_chave == "Pomodoro" and sorte_ativa == "Dia de Sorte": s_final += 5
-            if nome_chave == "Tópicos Concluídos" and sorte_ativa == "Foco Total": x_final *= 2
-            if nome_chave in ["Lixo", "Lavar roupas", "Limpar casa"] and sorte_ativa == "Limpinho": s_final *= 2
+            if sorte_ativa == "Limpinho" and nome_chave in ["Lixo", "Lavar_Roupas", "Limpar_Casa"]: 
+                s_final *= 2
 
             c_btn, c_rev, c_cap = st.columns([0.6, 0.1, 0.3])
-            if c_btn.button(f"{nome} (+{s_final}$/ +{x_final}XP)", use_container_width=True, key=f"btn_{nome}"):
+            
+            if c_btn.button(f"{display_name} (+{s_final}$/ +{x_final}XP)", use_container_width=True):
                 core.alterar_valor(dados, nome_chave, s_final, x_final, "soma")
-            if c_rev.button("➖", key=f"rev_{nome}", use_container_width=True):
+                
+            if c_rev.button("➖", key=f"rev_{nome_chave}", use_container_width=True):
                 core.alterar_valor(dados, nome_chave, s_final, x_final, "subtracao")
+                
             c_cap.caption(f"Registros: {dados['contadores'].get(nome_chave, 0)}")
 
     st.divider()
@@ -187,17 +192,6 @@ def renderizar(dados):
             if st.button("❌ Cancelar", use_container_width=True):
                 st.session_state.inicio_cronometro = None
                 st.rerun()
-
-    mes_atual = agora_br.strftime("%Y-%m")
-    total_pomodoros_mes = sum(v.get("pomodoros", 0.0) for k, v in dados.get("historico_diario", {}).items() if k.startswith(mes_atual))
-    horas_mes = (total_pomodoros_mes * 42) / 60
-
-    st.markdown(f"""
-        <div style="position: fixed; bottom: 70px; right: 10px; background-color: #1a1a2e; padding: 10px 15px; border-radius: 8px; border: 1px solid #00E5FF; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">
-            <h5 style="margin:0; color:#00E5FF; font-size:14px;">📅 Mês Atual</h5>
-            <h3 style="margin:0; color:white;">{horas_mes:.1f} horas</h3>
-        </div>
-    """, unsafe_allow_html=True)
 
     # ==========================================
     # TO-DO LIST
