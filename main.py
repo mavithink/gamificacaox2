@@ -17,10 +17,12 @@ if "inicio_cronometro" not in st.session_state:
 
 dados = st.session_state.dados
 
-# Execução das checagens diárias
 core.verificar_estagnacao(dados, st.session_state)
 
 for aviso in core.verificar_penalidade_estudo(dados):
+    st.error(aviso)
+
+for aviso in core.verificar_penalidade_aula(dados):
     st.error(aviso)
 
 for aviso in core.verificar_ghost(dados):
@@ -43,20 +45,15 @@ if dados['xp'] >= core.XP_POR_NIVEL:
     core.salvar_dados(dados)
     st.rerun()
 
-# ==========================================
-# BARRA LATERAL (NAVEGAÇÃO E STATUS)
-# ==========================================
 st.sidebar.title("Navegação")
 pagina = st.sidebar.radio("Ir para:", ["Painel Principal", "Mente e Rotina", "Gastos", "Cultura", "Extras"])
 
-# Cálculos para o Card da Barra Lateral
 agora_br = datetime.utcnow() - timedelta(hours=3)
 hoje_str = str(agora_br.date())
 p_hoje = dados.get("historico_diario", {}).get(hoje_str, {}).get("pomodoros", 0.0)
 horas_hoje = (p_hoje * 42) / 60
 data_formatada = agora_br.strftime("%d/%m/%Y")
 
-# Card em Destaque na Barra Lateral
 st.sidebar.markdown(f"""
     <div style="background-color: #1a1a2e; padding: 20px; border-radius: 12px; border: 2px solid #464b5d; text-align: center; margin-top: 40px; box-shadow: 0 8px 16px rgba(0,0,0,0.5);">
         <p style="color: #8a8a9d; margin: 0 0 10px 0; font-size: 14px; font-weight: bold; letter-spacing: 2px;">{data_formatada}</p>
@@ -76,6 +73,7 @@ if st.sidebar.button("Resetar Tudo"):
         "ultimo_acordar_cedo": str(agora_reset.date() - timedelta(days=1)),
         "ultimo_ghost_check": str(agora_reset.date() - timedelta(days=1)),
         "ultima_verificacao_estudo": str(agora_reset.date()),
+        "ultima_verificacao_aula": str(agora_reset.date()),
         "sorte_dia": {"data": "", "efeito": None},
         "ultima_punicao_data": "",
         "historico_diario": {},
@@ -90,14 +88,9 @@ if st.sidebar.button("Resetar Tudo"):
     core.salvar_dados(st.session_state.dados)
     st.rerun()
 
-# ==========================================
-# ROTEAMENTO DE PÁGINAS
-# ==========================================
 if pagina == "Painel Principal":
     st.title("📊 Painel Principal")
     
-    hoje_br = str((datetime.utcnow() - timedelta(hours=3)).date())
-    p_hoje = dados.get("historico_diario", {}).get(hoje_br, {}).get("pomodoros", 0.0)
     if p_hoje <= 0.0:
         st.error("🚨 **AVISO URGENTE:** Você ainda não registrou nenhum tempo de estudo hoje! Se o dia virar sem estudos, uma penalidade de -50$ será aplicada.")
 
@@ -124,8 +117,49 @@ if pagina == "Painel Principal":
     st.progress(min(dados['xp'] / core.XP_POR_NIVEL, 1.0))
     st.divider()
 
+    st.subheader("🎓 Presença nas Aulas")
+    dia_semana = agora_br.weekday()
+    
+    if dia_semana >= 5:
+        st.info("Não há aula hoje.")
+    else:
+        hoje_historico = dados.setdefault("historico_diario", {}).setdefault(hoje_str, {})
+        foi_aula = hoje_historico.get("aula_confirmada", False)
+        
+        if foi_aula:
+            st.success("✅ Presença confirmada hoje! (+20$, +10XP)")
+        else:
+            st.warning("⚠️ Você ainda não confirmou presença nas aulas de hoje. Se o dia virar, perderá 60$.")
+            if st.button("Confirmar Presença na Aula (+20$ / +10XP)", use_container_width=True):
+                hoje_historico["aula_confirmada"] = True
+                core.alterar_valor(dados, "Presenca_Aula", 20, 10, "soma")
+
+    with st.expander("📅 Horário de Aulas da Semana", expanded=False):
+        st.markdown("""
+        **Segunda-feira**
+        * 08:00 - 10:00: Sistemas Operacionais (Auditório DC)
+        * 16:00 - 18:00: Algoritmos e Estruturas de Dados 2 (AT4-68)
+
+        **Terça-feira**
+        * 10:00 - 12:00: Álgebra Linear 1 (AT9-218)
+        * 16:00 - 18:00: Matemática Discreta (AT4-68)
+
+        **Quarta-feira**
+        * 10:00 - 12:00: Sistemas Operacionais (Auditório DC)
+
+        **Quinta-feira**
+        * 08:00 - 10:00: Álgebra Linear 1 (AT7-164)
+        * 14:00 - 16:00: Matemática Discreta (AT4-68)
+        * 16:00 - 18:00: Algoritmos e Estruturas de Dados 2 (AT4-73)
+
+        **Sexta-feira**
+        * 10:00 - 12:00: Sistemas Operacionais (DC-LE-3)
+        * 14:00 - 18:00: Empreendedores em Informática (AT9-212)
+        """)
+
+    st.divider()
+
     st.subheader("Estatísticas e Resumos")
-    agora_br = datetime.utcnow() - timedelta(hours=3)
     inicio_semana = agora_br.date() - timedelta(days=6)
     
     dias_pt = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
