@@ -147,7 +147,7 @@ def renderizar(dados):
         
     st.caption(f"Meta para vencer o Ghost hoje: **{meta_ghost:.1f} sessões equivalentes**. (+30$)")
     
-    st.markdown("<h2 style='text-align: center;'>⏱️ Timer Progressivo</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>⏱️ Timer Progressivo X2</h2>", unsafe_allow_html=True)
     if st.session_state.inicio_cronometro is None:
         col_vazia1, col_btn_timer, col_vazia2 = st.columns([1, 1, 1])
         with col_btn_timer:
