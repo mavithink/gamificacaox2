@@ -132,7 +132,7 @@ def renderizar(dados):
     st.divider()
 
     # ==========================================
-    # POMODORO / CRONÔMETRO PROGRESSIVO
+    # POMODORO / CRONÔMETRO PROGRESSIVO (BUGFIX)
     # ==========================================
     semana_passada_str = str(agora_br.date() - timedelta(days=7))
     p_hoje = dados["historico_diario"].get(hoje_str, {}).get("pomodoros", 0.0)
@@ -155,13 +155,16 @@ def renderizar(dados):
                 st.session_state.inicio_cronometro = time.time()
                 st.rerun()
     else:
+        # BUG FIX AQUI no bloco JS para garantir que raw_diff nunca seja negativo no display
         components.html(f"""
         <div id="clock" style="color:#ff4b4b; font-size: 100px; text-align: center; font-family: sans-serif; font-weight: bold; margin-top: 20px;">00:00</div>
         <script>
             var start = {st.session_state.inicio_cronometro};
             setInterval(function() {{
                 var now = Date.now() / 1000;
-                var diff = Math.floor(now - start);
+                var raw_diff = Math.floor(now - start);
+                // Força o valor mínimo para zero para evitar o bug do display negativo
+                var diff = Math.max(0, raw_diff);
                 var m = Math.floor(diff / 60).toString().padStart(2, '0');
                 var s = (diff % 60).toString().padStart(2, '0');
                 document.getElementById('clock').innerHTML = m + ":" + s;
