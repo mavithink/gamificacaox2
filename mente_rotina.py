@@ -117,7 +117,7 @@ def renderizar(dados):
         meta_ghost = min(p_passado + 1.0, 8.0)
         
         st.markdown(f"""
-            <table width="100%" border="1" cellpadding="2" cellspacing="0" bordercolor="#000000" style="margin-bottom: 15px; text-align: center; font-size: 16px;">
+            <table width="100%" border="3" cellpadding="2" cellspacing="0" bordercolor="#000000" style="margin-bottom: 15px; text-align: center; font-size: 16px;">
                 <tr bgcolor="#E8D5EB">
                     <td>Sessões Hoje</td>
                     <td>Horas Hoje</td>
@@ -233,7 +233,7 @@ def renderizar(dados):
             col1, col2 = st.columns([0.85, 0.15])
             with col1:
                 st.markdown(f"""
-                <div style="border: 1px solid #000000; border-left: 5px solid #6e0b8a; padding: 5px 10px; margin-bottom: 2px; background-color: #FFFFFF;">
+                <div style="border: 2px solid #000000; border-left: 8px solid #6e0b8a; padding: 5px 10px; margin-bottom: 2px; background-color: #FFFFFF;">
                     <strong style="font-size: 18px;">{nome}</strong><br>
                     <span style="font-size: 16px; color: #666;">Pri: {pri} | {datetime.strptime(data_t, '%Y-%m-%d').strftime('%d/%m/%Y')}</span>
                 </div>
