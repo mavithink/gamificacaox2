@@ -8,6 +8,14 @@ import extras
 import cultura
 import theme_oldweb
 
+def formatar_horas(horas_decimais):
+    h = int(horas_decimais)
+    m = int(round((horas_decimais - h) * 60))
+    if m == 60:
+        h += 1
+        m = 0
+    return f"{h}h{m:02d}"
+
 st.set_page_config(page_title="Gamificação", page_icon="🤖", layout="wide")
 
 theme_oldweb.injetar_css_oldweb()
@@ -55,15 +63,16 @@ agora_br = datetime.utcnow() - timedelta(hours=3)
 hoje_str = str(agora_br.date())
 p_hoje = dados.get("historico_diario", {}).get(hoje_str, {}).get("pomodoros", 0.0)
 horas_hoje = (p_hoje * 42) / 60
+horas_hoje_str = formatar_horas(horas_hoje)
 data_formatada = agora_br.strftime("%d/%m/%Y")
 
-# Cartão da barra lateral mais robusto
+# Cartão da barra lateral formatado
 st.sidebar.markdown(f"""
     <div style="background-color: #FFFFFF; padding: 15px; border: 4px solid #6e0b8a; text-align: center; margin-top: 20px; box-shadow: 4px 4px 0px #808080;">
         <p style="color: #000000; margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">[ {data_formatada} ]</p>
         <h2 style="color: #6e0b8a; margin: 0; font-size: 28px; border-bottom: none;">Saldo: {dados['saldo']} $</h2>
         <hr style="border-top: 3px solid #6e0b8a; margin: 10px 0;">
-        <p style="color: #000000; margin: 0; font-weight: bold; font-size: 18px;">⏱️ {horas_hoje:.1f}h estudadas</p>
+        <p style="color: #000000; margin: 0; font-weight: bold; font-size: 18px;">⏱️ {horas_hoje_str} estudadas</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -126,7 +135,6 @@ if pagina == "Painel Principal":
     col_presenca, col_horario = st.columns([1, 2.5])
     
     with col_presenca:
-        # QUADRO 1: PRESENÇA NAS AULAS
         with st.container(border=True):
             st.markdown("<h3 style='margin-top: 0;'>Presença nas Aulas</h3>", unsafe_allow_html=True)
             dia_semana = agora_br.weekday()
@@ -145,7 +153,6 @@ if pagina == "Painel Principal":
                         hoje_historico["aula_confirmada"] = True
                         core.alterar_valor(dados, "Presenca_Aula", 20, 10, "soma")
 
-        # QUADRO 2: CONTADOR DE FALTAS
         with st.container(border=True):
             st.markdown("<h3 style='margin-top: 0;'>Controle de Faltas</h3>", unsafe_allow_html=True)
             materias_faltas = [
