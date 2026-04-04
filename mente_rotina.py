@@ -145,7 +145,7 @@ def renderizar(dados):
     with col_ghost2:
         st.metric("Ghost (Semana anterior)", f"{p_passado:.1f}", f"{(p_passado * 42) / 60:.1f} horas", delta_color="off")
         
-    st.caption(f"Meta para vencer o Ghost hoje: **{meta_ghost:.1f} sessões equivalentes**. (+30$)")
+    st.caption(f"Meta para vencer o Ghost de hoje: **{meta_ghost:.1f} sessões equivalentes**. (+30$)")
     
     st.markdown("<h2 style='text-align: center;'>⏱️ Timer Progressivo X2</h2>", unsafe_allow_html=True)
     if st.session_state.inicio_cronometro is None:
