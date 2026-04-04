@@ -38,7 +38,7 @@ def renderizar(dados):
         for i, missao in enumerate(dados["missoes_diarias"]["missoes"]):
             with colunas_missoes[i]:
                 st.markdown(f"""
-                    <div style='background-color: #FFFFFF; border: 1px solid #000000; padding: 10px; margin-bottom: 5px;'>
+                    <div style='background-color: #FFFFFF; border: 3px solid #000000; padding: 10px; margin-bottom: 5px;'>
                         <strong style='font-size: 18px; color: #000000;'>{missao['desc']}</strong><br>
                         <span style='font-size: 14px; color: #666666;'>Recompensa: +{missao['s']}$ | +{missao['x']}XP</span>
                     </div>
@@ -56,7 +56,7 @@ def renderizar(dados):
         with st.container(border=True):
             st.markdown("<h3 style='margin-top: 0;'>🎲 Sua Sorte Diária</h3>", unsafe_allow_html=True)
             st.markdown(f"""
-                <div style="text-align: center; padding: 15px; background-color: #E8D5EB; border: 1px solid #6e0b8a;">
+                <div style="text-align: center; padding: 15px; background-color: #E8D5EB; border: 4px solid #6e0b8a; box-shadow: 4px 4px 0px #808080;">
                     <h4 style="margin: 0; color: #000000; font-size: 18px; border-bottom: none;">Previsão para {dados['sorte_dia']['data']}:</h4>
                     <p style="font-size: 22px; color: #6e0b8a; font-weight: bold; margin-top: 10px;">{dados['sorte_dia']['desc']}</p>
                 </div>
