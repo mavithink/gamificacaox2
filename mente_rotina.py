@@ -151,7 +151,7 @@ def renderizar(dados):
     if st.session_state.inicio_cronometro is None:
         col_vazia1, col_btn_timer, col_vazia2 = st.columns([1, 1, 1])
         with col_btn_timer:
-            if st.button("▶️ Iniciar Estudo", use_container_width=True):
+            if st.button("▶️ Iniciar Estudo!", use_container_width=True):
                 st.session_state.inicio_cronometro = time.time()
                 st.rerun()
     else:
