@@ -126,6 +126,7 @@ if pagina == "Painel Principal":
     col_presenca, col_horario = st.columns([1, 2.5])
     
     with col_presenca:
+        # QUADRO 1: PRESENÇA NAS AULAS
         with st.container(border=True):
             st.markdown("<h3 style='margin-top: 0;'>Presença nas Aulas</h3>", unsafe_allow_html=True)
             dia_semana = agora_br.weekday()
@@ -143,6 +144,38 @@ if pagina == "Painel Principal":
                     if st.button("Confirmar Presença (+20$ / +10XP)", use_container_width=True):
                         hoje_historico["aula_confirmada"] = True
                         core.alterar_valor(dados, "Presenca_Aula", 20, 10, "soma")
+
+        # QUADRO 2: CONTADOR DE FALTAS
+        with st.container(border=True):
+            st.markdown("<h3 style='margin-top: 0;'>Controle de Faltas</h3>", unsafe_allow_html=True)
+            materias_faltas = [
+                ("Sist. Operacionais", "Faltas_SO"),
+                ("Algoritmos 2", "Faltas_Alg2"),
+                ("Álgebra Linear 1", "Faltas_AL1"),
+                ("Mat. Discreta", "Faltas_MD"),
+                ("Empreendedores", "Faltas_Emp")
+            ]
+            
+            for mat, chave in materias_faltas:
+                faltas = dados.setdefault("contadores", {}).get(chave, 0)
+                
+                c_nome, c_menos, c_qtd, c_mais = st.columns([0.45, 0.15, 0.25, 0.15])
+                with c_nome:
+                    st.markdown(f"<div style='font-size: 16px; margin-top: 2px; font-weight: bold;'>{mat}</div>", unsafe_allow_html=True)
+                with c_menos:
+                    if st.button("-", key=f"f_sub_{chave}", use_container_width=True):
+                        dados["contadores"][chave] = max(0, faltas - 1)
+                        core.salvar_dados(dados)
+                        st.rerun()
+                with c_qtd:
+                    st.markdown(f"<div style='text-align: center; font-size: 20px; font-weight: bold; color: #6e0b8a;'>{faltas}</div>", unsafe_allow_html=True)
+                with c_mais:
+                    if st.button("+", key=f"f_add_{chave}", use_container_width=True):
+                        dados["contadores"][chave] = faltas + 1
+                        core.salvar_dados(dados)
+                        st.rerun()
+                
+                st.markdown("<div style='border-bottom: 1px dotted #808080; margin-bottom: 5px; margin-top: 2px;'></div>", unsafe_allow_html=True)
 
     with col_horario:
         with st.container(border=True):
