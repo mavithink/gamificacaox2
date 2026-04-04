@@ -57,13 +57,13 @@ p_hoje = dados.get("historico_diario", {}).get(hoje_str, {}).get("pomodoros", 0.
 horas_hoje = (p_hoje * 42) / 60
 data_formatada = agora_br.strftime("%d/%m/%Y")
 
-# Cartão da barra lateral claro com bordas old web
+# Cartão da barra lateral com cor roxa
 st.sidebar.markdown(f"""
-    <div style="background-color: #FFFFFF; padding: 15px; border: 2px solid #3B5998; text-align: center; margin-top: 20px;">
-        <p style="color: #000000; margin: 0 0 10px 0; font-size: 12px; font-weight: bold;">[ {data_formatada} ]</p>
-        <h2 style="color: #3B5998; margin: 0; font-size: 24px; border-bottom: none;">Saldo: {dados['saldo']} $</h2>
-        <hr style="border-top: 1px solid #3B5998; margin: 10px 0;">
-        <p style="color: #000000; margin: 0; font-weight: bold; font-size: 14px;">⏱️ {horas_hoje:.1f}h estudadas</p>
+    <div style="background-color: #FFFFFF; padding: 15px; border: 2px solid #6e0b8a; text-align: center; margin-top: 20px;">
+        <p style="color: #000000; margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">[ {data_formatada} ]</p>
+        <h2 style="color: #6e0b8a; margin: 0; font-size: 28px; border-bottom: none;">Saldo: {dados['saldo']} $</h2>
+        <hr style="border-top: 1px solid #6e0b8a; margin: 10px 0;">
+        <p style="color: #000000; margin: 0; font-weight: bold; font-size: 18px;">⏱️ {horas_hoje:.1f}h estudadas</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -98,19 +98,19 @@ if pagina == "Painel Principal":
     st.title("Painel Principal")
     
     if p_hoje <= 0.0:
-        st.error("AVISO: Você ainda não registrou nenhum tempo de estudo hoje! Se o dia virar sem estudos, uma penalidade de -50$ será aplicada.")
+        st.error("AVISO: Você ainda não registrou nenhum tempo de estudo hoje! Penalidade de -50$ pendente.")
 
-    # Status e Métricas em Tabela HTML Old Web
+    # Status e Métricas
     st.markdown(f"""
-        <table width="100%" border="1" cellpadding="5" cellspacing="0" bordercolor="#3B5998" style="margin-bottom: 20px; text-align: center; background-color: #FFFFFF; font-family: Verdana, sans-serif;">
-            <tr bgcolor="#D8DFEA" style="color: #000000; font-weight: bold; font-size: 14px;">
+        <table width="100%" border="1" cellpadding="5" cellspacing="0" bordercolor="#6e0b8a" style="margin-bottom: 20px; text-align: center; background-color: #FFFFFF; font-family: 'VT323', monospace;">
+            <tr bgcolor="#E8D5EB" style="color: #000000; font-weight: bold; font-size: 18px;">
                 <td>Saldo</td>
                 <td>XP</td>
                 <td>Nível</td>
                 <td>Cupons</td>
                 <td>Streak</td>
             </tr>
-            <tr style="font-size: 16px; font-weight: bold; color: #3B5998;">
+            <tr style="font-size: 22px; font-weight: bold; color: #6e0b8a;">
                 <td>{dados['saldo']} $</td>
                 <td>{dados['xp']} / {core.XP_POR_NIVEL}</td>
                 <td>{dados['nivel']}</td>
@@ -122,61 +122,66 @@ if pagina == "Painel Principal":
     st.progress(min(dados['xp'] / core.XP_POR_NIVEL, 1.0))
     st.divider()
 
-    st.subheader("Presença nas Aulas")
-    dia_semana = agora_br.weekday()
+    # ==========================================
+    # LAYOUT LADO A LADO: PRESENÇA E CRONOGRAMA
+    # ==========================================
+    col_presenca, col_horario = st.columns([1, 2.5])
     
-    if dia_semana >= 5:
-        st.info("Não há aula hoje.")
-    else:
-        hoje_historico = dados.setdefault("historico_diario", {}).setdefault(hoje_str, {})
-        foi_aula = hoje_historico.get("aula_confirmada", False)
+    with col_presenca:
+        st.subheader("Presença nas Aulas")
+        dia_semana = agora_br.weekday()
         
-        if foi_aula:
-            st.success("Presença confirmada hoje! (+20$, +10XP)")
+        if dia_semana >= 5:
+            st.markdown('<div style="border: 1px solid #000000; background-color: #E9EAED; padding: 10px; font-family: \'VT323\', monospace;">Não há aula hoje.</div>', unsafe_allow_html=True)
         else:
-            st.warning("Você ainda não confirmou presença nas aulas de hoje. Se o dia virar, perderá 60$.")
-            if st.button("Confirmar Presença na Aula (+20$ / +10XP)", use_container_width=True):
-                hoje_historico["aula_confirmada"] = True
-                core.alterar_valor(dados, "Presenca_Aula", 20, 10, "soma")
+            hoje_historico = dados.setdefault("historico_diario", {}).setdefault(hoje_str, {})
+            foi_aula = hoje_historico.get("aula_confirmada", False)
+            
+            if foi_aula:
+                st.markdown('<div style="border: 1px solid #6e0b8a; background-color: #E8D5EB; color: #6e0b8a; padding: 10px; margin-bottom: 10px; font-family: \'VT323\', monospace; font-weight: bold;">[+] Presença confirmada! (+20$, +10XP)</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div style="border: 1px solid #000000; background-color: #DFDFDF; color: #000000; padding: 10px; margin-bottom: 10px; font-family: \'VT323\', monospace;">[!] Confirme presença ou perderá 60$.</div>', unsafe_allow_html=True)
+                if st.button("Confirmar Presença (+20$ / +10XP)", use_container_width=True):
+                    hoje_historico["aula_confirmada"] = True
+                    core.alterar_valor(dados, "Presenca_Aula", 20, 10, "soma")
 
-    # Horário de Aulas formatado claro
-    st.subheader("Horário de Aulas da Semana")
-    
-    col_seg, col_ter, col_qua, col_qui, col_sex = st.columns(5)
-    
-    def card_aula(horario, materia, local):
-        return f"""
-        <div style="background-color: #FFFFFF; border: 1px solid #3B5998; padding: 5px; margin-bottom: 5px; font-size: 11px; text-align: center;">
-            <div style="font-weight: bold; color: #3B5998; border-bottom: 1px dotted #A0A0A0; margin-bottom: 3px;">{horario}</div>
-            <div style="color: #000000; font-weight: bold;">{materia}</div>
-            <div style="color: #666666;">[{local}]</div>
-        </div>
-        """
+    with col_horario:
+        st.subheader("Horário da Semana")
+        c_seg, c_ter, c_qua, c_qui, c_sex = st.columns(5)
+        
+        def card_aula(horario, materia, local):
+            return f"""
+            <div style="background-color: #FFFFFF; border: 1px solid #6e0b8a; padding: 4px; margin-bottom: 5px; text-align: center; font-family: 'VT323', monospace;">
+                <div style="font-weight: bold; color: #6e0b8a; border-bottom: 1px dotted #A0A0A0; margin-bottom: 3px; font-size: 16px;">{horario}</div>
+                <div style="color: #000000; font-size: 16px;">{materia}</div>
+                <div style="color: #666666; font-size: 14px;">[{local}]</div>
+            </div>
+            """
 
-    with col_seg:
-        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #D8DFEA; border: 1px solid #3B5998; padding: 3px; margin-bottom: 10px; font-size: 12px;'>Segunda</div>", unsafe_allow_html=True)
-        st.markdown(card_aula("08:00 - 10:00", "Sistemas Operacionais", "Auditório DC"), unsafe_allow_html=True)
-        st.markdown(card_aula("16:00 - 18:00", "Algoritmos e Est. Dados 2", "AT4-68"), unsafe_allow_html=True)
+        with c_seg:
+            st.markdown("<div style='text-align: center; font-weight: bold; background-color: #E8D5EB; border: 1px solid #6e0b8a; padding: 2px; margin-bottom: 8px; font-size: 18px;'>Seg</div>", unsafe_allow_html=True)
+            st.markdown(card_aula("08:00-10:00", "Sist. Operacionais", "Auditório DC"), unsafe_allow_html=True)
+            st.markdown(card_aula("16:00-18:00", "Algoritmos 2", "AT4-68"), unsafe_allow_html=True)
 
-    with col_ter:
-        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #D8DFEA; border: 1px solid #3B5998; padding: 3px; margin-bottom: 10px; font-size: 12px;'>Terça</div>", unsafe_allow_html=True)
-        st.markdown(card_aula("10:00 - 12:00", "Álgebra Linear 1", "AT9-218"), unsafe_allow_html=True)
-        st.markdown(card_aula("16:00 - 18:00", "Matemática Discreta", "AT4-68"), unsafe_allow_html=True)
+        with c_ter:
+            st.markdown("<div style='text-align: center; font-weight: bold; background-color: #E8D5EB; border: 1px solid #6e0b8a; padding: 2px; margin-bottom: 8px; font-size: 18px;'>Ter</div>", unsafe_allow_html=True)
+            st.markdown(card_aula("10:00-12:00", "Álgebra Linear 1", "AT9-218"), unsafe_allow_html=True)
+            st.markdown(card_aula("16:00-18:00", "Mat. Discreta", "AT4-68"), unsafe_allow_html=True)
 
-    with col_qua:
-        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #D8DFEA; border: 1px solid #3B5998; padding: 3px; margin-bottom: 10px; font-size: 12px;'>Quarta</div>", unsafe_allow_html=True)
-        st.markdown(card_aula("10:00 - 12:00", "Sistemas Operacionais", "Auditório DC"), unsafe_allow_html=True)
+        with c_qua:
+            st.markdown("<div style='text-align: center; font-weight: bold; background-color: #E8D5EB; border: 1px solid #6e0b8a; padding: 2px; margin-bottom: 8px; font-size: 18px;'>Qua</div>", unsafe_allow_html=True)
+            st.markdown(card_aula("10:00-12:00", "Sist. Operacionais", "Auditório DC"), unsafe_allow_html=True)
 
-    with col_qui:
-        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #D8DFEA; border: 1px solid #3B5998; padding: 3px; margin-bottom: 10px; font-size: 12px;'>Quinta</div>", unsafe_allow_html=True)
-        st.markdown(card_aula("08:00 - 10:00", "Álgebra Linear 1", "AT7-164"), unsafe_allow_html=True)
-        st.markdown(card_aula("14:00 - 16:00", "Matemática Discreta", "AT4-68"), unsafe_allow_html=True)
-        st.markdown(card_aula("16:00 - 18:00", "Algoritmos e Est. Dados 2", "AT4-73"), unsafe_allow_html=True)
+        with c_qui:
+            st.markdown("<div style='text-align: center; font-weight: bold; background-color: #E8D5EB; border: 1px solid #6e0b8a; padding: 2px; margin-bottom: 8px; font-size: 18px;'>Qui</div>", unsafe_allow_html=True)
+            st.markdown(card_aula("08:00-10:00", "Álgebra Linear 1", "AT7-164"), unsafe_allow_html=True)
+            st.markdown(card_aula("14:00-16:00", "Mat. Discreta", "AT4-68"), unsafe_allow_html=True)
+            st.markdown(card_aula("16:00-18:00", "Algoritmos 2", "AT4-73"), unsafe_allow_html=True)
 
-    with col_sex:
-        st.markdown("<div style='text-align: center; font-weight: bold; background-color: #D8DFEA; border: 1px solid #3B5998; padding: 3px; margin-bottom: 10px; font-size: 12px;'>Sexta</div>", unsafe_allow_html=True)
-        st.markdown(card_aula("10:00 - 12:00", "Sistemas Operacionais", "DC-LE-3"), unsafe_allow_html=True)
-        st.markdown(card_aula("14:00 - 18:00", "Empreendedores em Inf.", "AT9-212"), unsafe_allow_html=True)
+        with c_sex:
+            st.markdown("<div style='text-align: center; font-weight: bold; background-color: #E8D5EB; border: 1px solid #6e0b8a; padding: 2px; margin-bottom: 8px; font-size: 18px;'>Sex</div>", unsafe_allow_html=True)
+            st.markdown(card_aula("10:00-12:00", "Sist. Operacionais", "DC-LE-3"), unsafe_allow_html=True)
+            st.markdown(card_aula("14:00-18:00", "Empreendedores", "AT9-212"), unsafe_allow_html=True)
 
     st.divider()
 
@@ -201,18 +206,18 @@ if pagina == "Painel Principal":
     col_g1, col_g2 = st.columns(2)
     with col_g1:
         st.markdown("<p style='text-align: center; color: #000000; font-weight: bold;'>Foco (Últimos 7 dias)</p>", unsafe_allow_html=True)
-        st.bar_chart(df_grafico["Sessões Equivalentes"], color="#3B5998")
+        st.bar_chart(df_grafico["Sessões Equivalentes"], color="#6e0b8a")
     with col_g2:
         st.markdown("<p style='text-align: center; color: #000000; font-weight: bold;'>Rendimento (Últimos 7 dias)</p>", unsafe_allow_html=True)
-        st.line_chart(df_grafico["Moedas Geradas"], color="#3B5998")
+        st.line_chart(df_grafico["Moedas Geradas"], color="#6e0b8a")
         
     st.divider()
-    st.markdown("<p style='text-align: center; color: #000000; font-weight: bold;'>Distribuição de Tarefas Concluídas (Geral)</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #000000; font-weight: bold;'>Distribuição de Tarefas Concluídas</p>", unsafe_allow_html=True)
     contadores = dados.get("contadores", {})
     df_contadores = pd.DataFrame(list(contadores.items()), columns=['Tarefa', 'Quantidade']).set_index('Tarefa')
     df_contadores = df_contadores[~df_contadores.index.str.startswith('Gasto_') & ~df_contadores.index.str.startswith('P_')]
     if not df_contadores.empty:
-        st.bar_chart(df_contadores, color="#3B5998")
+        st.bar_chart(df_contadores, color="#6e0b8a")
 
 elif pagina == "Mente e Rotina":
     mente_rotina.renderizar(dados)
