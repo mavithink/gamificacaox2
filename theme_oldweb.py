@@ -8,36 +8,36 @@ def injetar_css_oldweb():
 
     /* 1. Reset Global e Fundo */
     .stApp {
-        background-color: #C0C0C0; /* Cinza clássico Windows 95/98 */
+        background-color: #C0C0C0; 
         font-family: 'VT323', monospace !important;
         color: #000000 !important;
-        font-size: 18px !important; /* Fonte pixelada precisa ser um pouco maior para leitura */
+        font-size: 18px !important; 
     }
 
-    /* 2. Container Principal (Mais estreito e compacto) */
+    /* 2. Container Principal */
     .block-container {
         background-color: #ffffff;
         border: 2px solid #000000; 
-        padding: 10px 15px !important; /* Economia de espaço vertical e horizontal */
+        padding: 10px 15px !important; 
         box-shadow: 2px 2px 0px #808080; 
         margin-top: 10px;
     }
 
-    /* 3. Cabeçalhos (Reduzidos e colados no conteúdo) */
-    h1 { font-size: 24px !important; padding-bottom: 2px; }
-    h2 { font-size: 20px !important; }
-    h3, h4 { font-size: 18px !important; }
+    /* 3. Cabeçalhos */
+    h1 { font-size: 26px !important; padding-bottom: 2px; }
+    h2 { font-size: 22px !important; }
+    h3, h4 { font-size: 20px !important; }
     
     h1, h2, h3, h4 {
         font-family: 'VT323', monospace !important;
-        color: #000080 !important; /* Azul marinho clássico */
+        color: #6e0b8a !important; /* ROXO */
         font-weight: normal !important;
-        border-bottom: 1px solid #000080; 
+        border-bottom: 1px solid #6e0b8a; 
         margin-bottom: 5px !important;
         margin-top: 5px !important;
     }
 
-    /* 4. Botões Estilo Clássico (Mais finos e compactos) */
+    /* 4. Botões Estilo Clássico */
     .stButton > button {
         background-color: #DFDFDF !important;
         border: 2px solid !important;
@@ -45,9 +45,9 @@ def injetar_css_oldweb():
         border-radius: 0px !important; 
         color: #000000 !important;
         font-family: 'VT323', monospace !important;
-        font-size: 16px !important;
-        padding: 0px 5px !important; /* Botões mais achatados */
-        min-height: 25px !important; /* Reduz altura mínima do Streamlit */
+        font-size: 18px !important;
+        padding: 0px 5px !important; 
+        min-height: 25px !important; 
         box-shadow: none !important;
         transition: none !important; 
     }
@@ -55,10 +55,12 @@ def injetar_css_oldweb():
         border-color: #404040 #FFFFFF #FFFFFF #404040 !important; 
         background-color: #C0C0C0 !important;
     }
+    
+    /* BOTÃO PRIMÁRIO COM A COR ROXA */
     .stButton > button[kind="primary"] {
-        background-color: #000080 !important;
+        background-color: #6e0b8a !important;
         color: #FFFFFF !important;
-        border-color: #8B9DC3 #000000 #000000 #8B9DC3 !important;
+        border-color: #a84bc4 #3a054a #3a054a #a84bc4 !important;
     }
 
     /* 5. Barra Lateral */
@@ -71,12 +73,12 @@ def injetar_css_oldweb():
         font-family: 'VT323', monospace !important;
     }
     [data-testid="stSidebar"] .stRadio label {
-        color: #000080 !important;
+        color: #6e0b8a !important;
         text-decoration: underline; 
         cursor: pointer;
     }
 
-    /* 6. Entradas de Dados e Métricas */
+    /* 6. Entradas de Dados e Alertas */
     .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] {
         border-radius: 0px !important;
         border: 1px solid #000000 !important;
@@ -86,12 +88,17 @@ def injetar_css_oldweb():
         padding: 2px !important;
     }
     
+    [data-testid="stAlert"], [data-testid="stAlert"] * {
+        font-family: 'VT323', monospace !important;
+        border-radius: 0px !important;
+    }
+
     [data-testid="stMetricValue"] {
         font-family: 'VT323', monospace !important;
         font-size: 24px !important;
     }
 
-    /* 7. Remoção de Espaços Fantasmas do Streamlit */
+    /* 7. Remoção de Espaços Fantasmas */
     div[data-testid="stVerticalBlock"] > div {
         padding-top: 0rem !important;
         padding-bottom: 0rem !important;
