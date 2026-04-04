@@ -6,8 +6,11 @@ import mente_rotina
 import loja
 import extras
 import cultura
+import theme_oldweb
 
 st.set_page_config(page_title="Gamificação", page_icon="🤖", layout="wide")
+
+theme_oldweb.injetar_css_oldweb()
 
 if 'dados' not in st.session_state:
     st.session_state.dados = core.carregar_dados()
@@ -96,26 +99,6 @@ if pagina == "Painel Principal":
     if p_hoje <= 0.0:
         st.error("🚨 **AVISO URGENTE:** Você ainda não registrou nenhum tempo de estudo hoje! Se o dia virar sem estudos, uma penalidade de -50$ será aplicada.")
 
-    st.markdown(f"""
-    <style>
-    .metric-container {{ display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px; }}
-    .metric-card {{ flex: 1; background-color: #1a1a2e; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #2e2e48; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }}
-    .metric-card h4 {{ margin: 0; color: #8a8a9d; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; }}
-    .metric-card h2 {{ margin: 10px 0 0 0; font-size: 32px; font-weight: 800; }}
-    .card-saldo h2 {{ color: #FFD700; }}
-    .card-xp h2 {{ color: #00E5FF; }}
-    .card-nivel h2 {{ color: #B388FF; }}
-    .card-cupons h2 {{ color: #00E676; }}
-    .card-streak h2 {{ color: #ff4b4b; }}
-    </style>
-    <div class="metric-container">
-        <div class="metric-card card-saldo"><h4>Saldo 💰</h4><h2>{dados['saldo']} $</h2></div>
-        <div class="metric-card card-xp"><h4>XP ⚡</h4><h2>{dados['xp']} / {core.XP_POR_NIVEL}</h2></div>
-        <div class="metric-card card-nivel"><h4>Nível 🌟</h4><h2>{dados['nivel']}</h2></div>
-        <div class="metric-card card-cupons"><h4>Cupons 🎫</h4><h2>{dados['cupons']}</h2></div>
-        <div class="metric-card card-streak"><h4>Streak 🔥</h4><h2>{dados['streak']}</h2></div>
-    </div>
-    """, unsafe_allow_html=True)
     st.progress(min(dados['xp'] / core.XP_POR_NIVEL, 1.0))
     st.divider()
 
