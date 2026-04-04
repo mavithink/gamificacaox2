@@ -47,8 +47,8 @@ def renderizar(dados):
     # HÁBITOS EM DESTAQUE
     # ==========================================
     st.markdown("""
-        <div style="background-color: #E9EAED; border: 1px solid #000080; padding: 2px 5px; margin-bottom: 10px;">
-            <strong style="color: #000080; font-size: 16px;">[!] Hábitos em Destaque</strong>
+        <div style="background-color: #E9EAED; border: 1px solid #6e0b8a; padding: 2px 5px; margin-bottom: 10px;">
+            <strong style="color: #6e0b8a; font-size: 18px;">[!] Hábitos em Destaque</strong>
         </div>
     """, unsafe_allow_html=True)
 
@@ -75,8 +75,8 @@ def renderizar(dados):
     # ROTINA DIÁRIA (1X)
     # ==========================================
     st.markdown("""
-        <div style="background-color: #E9EAED; border: 1px solid #000080; padding: 2px 5px; margin-bottom: 10px; margin-top: 10px;">
-            <strong style="color: #000080; font-size: 16px;">[>] Rotina Diária</strong>
+        <div style="background-color: #E9EAED; border: 1px solid #6e0b8a; padding: 2px 5px; margin-bottom: 10px; margin-top: 10px;">
+            <strong style="color: #6e0b8a; font-size: 18px;">[>] Rotina Diária</strong>
         </div>
     """, unsafe_allow_html=True)
 
@@ -136,8 +136,8 @@ def renderizar(dados):
     meta_ghost = min(p_passado + 1.0, 8.0)
     
     st.markdown(f"""
-        <table width="100%" border="1" cellpadding="2" cellspacing="0" bordercolor="#000000" style="margin-bottom: 10px; text-align: center; font-size: 14px;">
-            <tr bgcolor="#D8DFEA">
+        <table width="100%" border="1" cellpadding="2" cellspacing="0" bordercolor="#000000" style="margin-bottom: 10px; text-align: center; font-size: 16px;">
+            <tr bgcolor="#E8D5EB">
                 <td>Sessões Hoje</td>
                 <td>Horas Hoje</td>
                 <td>Sessões Ghost (Semana passada)</td>
@@ -163,7 +163,7 @@ def renderizar(dados):
         decorrido_inicial = max(0, int(time.time() - st.session_state.inicio_cronometro))
         
         components.html(f"""
-        <div id="clock" style="color:#000080; font-size: 80px; text-align: center; font-family: 'VT323', monospace; font-weight: bold; margin-top: 10px;">00:00</div>
+        <div id="clock" style="color:#6e0b8a; font-size: 80px; text-align: center; font-family: 'VT323', monospace; font-weight: bold; margin-top: 10px;">00:00</div>
         <script>
             var diff = {decorrido_inicial};
             function atualizarRelogio() {{
@@ -229,7 +229,7 @@ def renderizar(dados):
                         "nome": nova_tarefa.strip(),
                         "data": str(nova_data),
                         "prioridade": nova_prioridade,
-                        "cor": "#000080" # Cor fixa na estética Old Web
+                        "cor": "#6e0b8a" 
                     })
                     salvar_tarefas(st.session_state.tarefas)
                     st.rerun()
@@ -257,9 +257,9 @@ def renderizar(dados):
         col1, col2 = st.columns([0.85, 0.15])
         with col1:
             st.markdown(f"""
-            <div style="border: 1px solid #000000; border-left: 5px solid #000080; padding: 5px 10px; margin-bottom: 2px; background-color: #FFFFFF;">
-                <strong style="font-size: 16px;">{nome}</strong><br>
-                <span style="font-size: 14px; color: #666;">Pri: {pri} | {datetime.strptime(data_t, '%Y-%m-%d').strftime('%d/%m/%Y')}</span>
+            <div style="border: 1px solid #000000; border-left: 5px solid #6e0b8a; padding: 5px 10px; margin-bottom: 2px; background-color: #FFFFFF;">
+                <strong style="font-size: 18px;">{nome}</strong><br>
+                <span style="font-size: 16px; color: #666;">Pri: {pri} | {datetime.strptime(data_t, '%Y-%m-%d').strftime('%d/%m/%Y')}</span>
             </div>
             """, unsafe_allow_html=True)
             concluida = st.checkbox("Concluir", key=f"chk_{t_id}")
