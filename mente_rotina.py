@@ -105,7 +105,6 @@ def renderizar(dados):
     # TAREFAS GERAIS
     # ==========================================
     with st.expander("🏠 Tarefas Gerais e Operacionais", expanded=False):
-        # Separação entre o nome de exibição e a chave interna segura (sem barras ou espaços complexos)
         config_ganhos = {
             "Banho / Higiene Pessoal": ("Higiene_Pessoal", 5, 5),
             "Tirar o Lixo": ("Lixo", 5, 20),
@@ -132,7 +131,7 @@ def renderizar(dados):
     st.divider()
 
     # ==========================================
-    # POMODORO / CRONÔMETRO PROGRESSIVO (BUGFIX)
+    # POMODORO / CRONÔMETRO PROGRESSIVO (BUGFIX DE RELÓGIO)
     # ==========================================
     semana_passada_str = str(agora_br.date() - timedelta(days=7))
     p_hoje = dados["historico_diario"].get(hoje_str, {}).get("pomodoros", 0.0)
@@ -145,30 +144,31 @@ def renderizar(dados):
     with col_ghost2:
         st.metric("Ghost (Semana anterior)", f"{p_passado:.1f}", f"{(p_passado * 42) / 60:.1f} horas", delta_color="off")
         
-    st.caption(f"Meta para vencer o Ghost de hoje: **{meta_ghost:.1f} sessões equivalentes**. (+30$)")
+    st.caption(f"Meta para vencer o Ghost hoje: **{meta_ghost:.1f} sessões equivalentes**. (+30$)")
     
-    st.markdown("<h2 style='text-align: center;'>⏱️ Timer Progressivo X2</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>⏱️ Timer Progressivo</h2>", unsafe_allow_html=True)
     if st.session_state.inicio_cronometro is None:
         col_vazia1, col_btn_timer, col_vazia2 = st.columns([1, 1, 1])
         with col_btn_timer:
-            if st.button("▶️ Iniciar Estudo!", use_container_width=True):
+            if st.button("▶️ Iniciar Estudo", use_container_width=True):
                 st.session_state.inicio_cronometro = time.time()
                 st.rerun()
     else:
-        # BUG FIX AQUI no bloco JS para garantir que raw_diff nunca seja negativo no display
+        # Servidor calcula a diferença exata atual, imunizando contra drift de fuso horário/relógio do PC
+        decorrido_inicial = max(0, int(time.time() - st.session_state.inicio_cronometro))
+        
         components.html(f"""
         <div id="clock" style="color:#ff4b4b; font-size: 100px; text-align: center; font-family: sans-serif; font-weight: bold; margin-top: 20px;">00:00</div>
         <script>
-            var start = {st.session_state.inicio_cronometro};
-            setInterval(function() {{
-                var now = Date.now() / 1000;
-                var raw_diff = Math.floor(now - start);
-                // Força o valor mínimo para zero para evitar o bug do display negativo
-                var diff = Math.max(0, raw_diff);
+            var diff = {decorrido_inicial};
+            function atualizarRelogio() {{
                 var m = Math.floor(diff / 60).toString().padStart(2, '0');
                 var s = (diff % 60).toString().padStart(2, '0');
                 document.getElementById('clock').innerHTML = m + ":" + s;
-            }}, 1000);
+                diff++;
+            }}
+            atualizarRelogio(); // Chama instantaneamente para não piscar a tela
+            setInterval(atualizarRelogio, 1000); // Atualiza no front a cada 1 seg
         </script>
         """, height=160)
         
