@@ -14,26 +14,26 @@ def injetar_css_oldweb():
         font-size: 18px !important; 
     }
 
-    /* 2. Container Principal */
+    /* 2. Container Principal (Toda a página) */
     .block-container {
-        background-color: #ffffff;
+        background-color: #E9EAED; /* Levemente cinza para destacar as caixas brancas internas */
         border: 2px solid #000000; 
-        padding: 10px 15px !important; 
+        padding: 10px 20px !important; 
         box-shadow: 2px 2px 0px #808080; 
         margin-top: 10px;
     }
 
     /* 3. Cabeçalhos */
-    h1 { font-size: 26px !important; padding-bottom: 2px; }
-    h2 { font-size: 22px !important; }
-    h3, h4 { font-size: 20px !important; }
+    h1 { font-size: 28px !important; padding-bottom: 2px; }
+    h2 { font-size: 24px !important; }
+    h3, h4 { font-size: 22px !important; }
     
     h1, h2, h3, h4 {
         font-family: 'VT323', monospace !important;
-        color: #6e0b8a !important; /* ROXO */
+        color: #6e0b8a !important; 
         font-weight: normal !important;
         border-bottom: 1px solid #6e0b8a; 
-        margin-bottom: 5px !important;
+        margin-bottom: 10px !important;
         margin-top: 5px !important;
     }
 
@@ -56,7 +56,6 @@ def injetar_css_oldweb():
         background-color: #C0C0C0 !important;
     }
     
-    /* BOTÃO PRIMÁRIO COM A COR ROXA */
     .stButton > button[kind="primary"] {
         background-color: #6e0b8a !important;
         color: #FFFFFF !important;
@@ -108,16 +107,43 @@ def injetar_css_oldweb():
         border-color: #808080 !important;
     }
 
-    /* 8. Anulando caixas escuras residuais */
-    div[style*="background-color: #1a1a2e"], 
-    div[style*="background-color: #262730"],
-    div[style*="background-color: #2e2e48"] {
-        background-color: transparent !important;
-        border: none !important;
-        color: #000000 !important;
+    /* 8. QUADROS (CONTAINERS) COM BORDAS DEFINIDAS */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        border: 2px solid #6e0b8a !important;
+        background-color: #FFFFFF !important; /* Fundo branco para destacar os dados */
+        border-radius: 0px !important;
+        box-shadow: 4px 4px 0px #808080 !important; /* Sombra Old Web */
+        padding: 15px !important;
+        margin-bottom: 20px !important;
     }
-    p, span, div {
-        color: #000000;
+
+    /* 9. BARRA DE PROGRESSO PIXELADA */
+    .stProgress > div > div > div > div {
+        background-color: #6e0b8a !important;
+        border-radius: 0px !important;
     }
+    .stProgress > div > div > div {
+        background-color: #C0C0C0 !important;
+        border: 2px solid #000000 !important;
+        border-radius: 0px !important;
+        height: 20px !important;
+    }
+    
+    /* 10. Expanders Estilo Retrô */
+    [data-testid="stExpander"] {
+        border: 2px solid #6e0b8a !important;
+        background-color: #FFFFFF !important;
+        border-radius: 0px !important;
+        box-shadow: 2px 2px 0px #808080 !important;
+    }
+    [data-testid="stExpander"] summary {
+        background-color: #E8D5EB !important;
+    }
+    [data-testid="stExpander"] summary p {
+        color: #6e0b8a !important;
+        font-weight: bold !important;
+    }
+
+    p, span, div { color: #000000; }
     </style>
     """, unsafe_allow_html=True)
