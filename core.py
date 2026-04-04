@@ -8,11 +8,15 @@ FIREBASE_URL_DADOS = "https://gamix2-57898-default-rtdb.firebaseio.com/status_us
 XP_POR_NIVEL = 300
 
 def carregar_dados():
+    import streamlit as st
     agora_br = datetime.utcnow() - timedelta(hours=3)
     try:
         resposta = requests.get(FIREBASE_URL_DADOS, timeout=10)
-        if resposta.status_code == 200 and resposta.json() is not None:
-            dados = resposta.json()
+        resposta.raise_for_status() 
+        dados_firebase = resposta.json()
+
+        if dados_firebase is not None:
+            dados = dados_firebase
             novas_chaves = {
                 "streak": 0,
                 "ultima_atividade": str(agora_br.date() - timedelta(days=1)),
@@ -53,8 +57,15 @@ def carregar_dados():
                     "incorruptivel": {"atual": 0, "total": 3, "completadas": 0, "ultima_verificacao": str(agora_br.date()), "data_conclusao": ""}
                 }
             return dados
-    except Exception:
-        pass
+        else:
+            pass 
+
+    except requests.exceptions.RequestException:
+        st.error("🚨 Falha de conexão com o banco de dados. Para evitar a sobrescrita por um perfil zerado, o sistema foi paralisado. Recarregue a página.")
+        st.stop()
+    except Exception as e:
+        st.error(f"🚨 Erro crítico ao processar dados: {e}")
+        st.stop()
         
     return {
         "saldo": 0, "xp": 0, "nivel": 1, "cupons": 0, "contadores": {}, "streak": 0,
