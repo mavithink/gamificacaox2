@@ -8,6 +8,14 @@ import core
 
 FIREBASE_URL_TAREFAS = "https://gamix2-57898-default-rtdb.firebaseio.com/tarefas.json"
 
+def formatar_horas(horas_decimais):
+    h = int(horas_decimais)
+    m = int(round((horas_decimais - h) * 60))
+    if m == 60:
+        h += 1
+        m = 0
+    return f"{h}h{m:02d}"
+
 def carregar_tarefas():
     try:
         resposta = requests.get(FIREBASE_URL_TAREFAS)
@@ -116,19 +124,27 @@ def renderizar(dados):
         p_passado = dados["historico_diario"].get(semana_passada_str, {}).get("pomodoros", 0.0)
         meta_ghost = min(p_passado + 1.0, 8.0)
         
+        # Calculando o tempo do mês
+        mes_atual = agora_br.strftime("%Y-%m")
+        total_pomodoros_mes = sum(v.get("pomodoros", 0.0) for k, v in dados.get("historico_diario", {}).items() if k.startswith(mes_atual))
+        horas_mes_dec = (total_pomodoros_mes * 42) / 60
+        horas_hoje_dec = (p_hoje * 42) / 60
+        
         st.markdown(f"""
-            <table width="100%" border="3" cellpadding="2" cellspacing="0" bordercolor="#000000" style="margin-bottom: 15px; text-align: center; font-size: 16px;">
-                <tr bgcolor="#E8D5EB">
+            <table width="100%" border="3" cellpadding="2" cellspacing="0" bordercolor="#000000" style="margin-bottom: 15px; text-align: center; font-size: 18px; font-family: 'VT323', monospace;">
+                <tr bgcolor="#E8D5EB" style="font-weight: bold;">
                     <td>Sessões Hoje</td>
                     <td>Horas Hoje</td>
-                    <td>Sessões Ghost (Sem. passada)</td>
+                    <td>Sessões Ghost</td>
                     <td>Meta Ghost</td>
+                    <td>Horas Mês</td>
                 </tr>
                 <tr>
                     <td>{p_hoje:.1f}</td>
-                    <td>{(p_hoje * 42) / 60:.1f}h</td>
+                    <td>{formatar_horas(horas_hoje_dec)}</td>
                     <td>{p_passado:.1f}</td>
                     <td>{meta_ghost:.1f}</td>
+                    <td>{formatar_horas(horas_mes_dec)}</td>
                 </tr>
             </table>
         """, unsafe_allow_html=True)
