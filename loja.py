@@ -56,4 +56,33 @@ def renderizar(dados):
                             dados['cupons'] -= 1
                         
                         chave_contador = f"Gasto_{item.replace(' ', '_')}"
-                        dados["contadores"][chave
+                        dados["contadores"][chave_contador] = dados["contadores"].get(chave_contador, 0) + 1
+                        core.salvar_dados(dados)
+                        st.rerun()
+                    else: 
+                        st.error("Saldo insuficiente!")
+                
+                chave_exibicao = f"Gasto_{item.replace(' ', '_')}"
+                st.caption(f"Comprados: {dados['contadores'].get(chave_exibicao, 0)}")
+
+    with col_punicao:
+        with st.container(border=True):
+            st.markdown("<h3 style='margin-top: 0;'>⚠️ Punições</h3>", unsafe_allow_html=True)
+            punicoes = {"Rede Social": 25, "Gasto Inútil": 100}
+            for p, v in punicoes.items():
+                v_final = v * 3 if sorte_ativa == "Não faça isso" else v
+                if st.button(f"{p} (-{v_final}$)", use_container_width=True):
+                    dados['saldo'] = dados.get('saldo', 0) - v_final
+                    chave_p = f"P_{p.replace(' ', '_')}"
+                    dados["contadores"][chave_p] = dados["contadores"].get(chave_p, 0) + 1
+                    dados["ultima_punicao_data"] = str(datetime.utcnow().date())
+                    
+                    if "conquistas" not in dados:
+                        dados["conquistas"] = {}
+                    if "incorruptivel" not in dados["conquistas"]:
+                        dados["conquistas"]["incorruptivel"] = {"atual": 0}
+                        
+                    dados["conquistas"]["incorruptivel"]["atual"] = 0
+                    core.salvar_dados(dados)
+                    st.rerun()
+                st.caption(f"Ocorrências: {dados['contadores'].get(f'P_{p.replace(' ', '_')}', 0)}")
