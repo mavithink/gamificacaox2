@@ -3,6 +3,16 @@ import core
 from datetime import datetime, timedelta
 
 def renderizar(dados):
+    # Força a fonte pixelada no texto interno (tag p) dos botões
+    st.markdown("""
+    <style>
+    .stButton > button p {
+        font-family: 'VT323', monospace !important;
+        font-size: 20px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.title("Loja e Gastos")
     
     agora_br = datetime.utcnow() - timedelta(hours=3)
@@ -15,6 +25,7 @@ def renderizar(dados):
         
     sorte_ativa = dados["sorte_dia"].get("efeito")
     qtd_cupons = dados.get('cupons', 0)
+    saldo_atual = dados.get('saldo', 0)
     
     col_loja, col_direita = st.columns([1.3, 1])
 
@@ -94,16 +105,25 @@ def renderizar(dados):
         # 4. ITENS DA LOJA
         # ==========================================
         with st.container(border=True):
-            st.markdown("<h3 style='margin-top: 0;'>🛍️ Itens Disponíveis</h3>", unsafe_allow_html=True)
+            # Título e Saldo alinhados na mesma linha com flexbox
+            st.markdown(f"""
+            <div style='display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #6e0b8a; margin-bottom: 15px; padding-bottom: 5px;'>
+                <h3 style='margin: 0; border: none;'>🛍️ Itens Disponíveis</h3>
+                <div style='background-color: #E8D5EB; padding: 2px 10px; border: 2px solid #6e0b8a; font-family: "VT323", monospace; font-size: 24px; color: #6e0b8a; font-weight: bold;'>
+                    Saldo: {saldo_atual}$
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             
+            # Estrutura de dados separando ícones para não quebrar as chaves do banco de dados
             itens_loja = {
-                "60m de Jogo": 30, 
-                "Delivery": 250, 
-                "Cosmético": 1200, 
-                "Ver filme": 50,
-                "1 Episódio Série": 10,
-                "1 Capítulo Novel": 4,
-                "10 Capítulos Novel": 36
+                "60m de Jogo": {"preco": 30, "icone": "🎮"}, 
+                "Delivery": {"preco": 250, "icone": "🍔"}, 
+                "Cosmético": {"preco": 1200, "icone": "👕"}, 
+                "Ver filme": {"preco": 50, "icone": "🍿"},
+                "1 Episódio Série": {"preco": 10, "icone": "📺"},
+                "1 Capítulo Novel": {"preco": 4, "icone": "📖"},
+                "10 Capítulos Novel": {"preco": 36, "icone": "📚"}
             }
             
             st.markdown("""
@@ -114,7 +134,9 @@ def renderizar(dados):
             </div>
             """, unsafe_allow_html=True)
             
-            for item, preco_base in itens_loja.items():
+            for item, infos in itens_loja.items():
+                preco_base = infos["preco"]
+                icone = infos["icone"]
                 preco_final = preco_base
                 
                 if sorte_ativa == "Inflação": 
@@ -128,7 +150,7 @@ def renderizar(dados):
                 
                 c1, c2, c3 = st.columns([2, 1, 1])
                 with c1:
-                    st.markdown(f"<div style='margin-top: 2px; font-family: \"VT323\", monospace;'><strong style='font-size: 20px;'>{item}</strong><br><span style='font-size: 16px; color: #666666;'>Comprados: {dados['contadores'].get(chave_contador, 0)}</span></div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='margin-top: 2px; font-family: \"VT323\", monospace;'><strong style='font-size: 22px;'>{icone} {item}</strong><br><span style='font-size: 16px; color: #666666;'>Comprados: {dados['contadores'].get(chave_contador, 0)}</span></div>", unsafe_allow_html=True)
                 with c2:
                     cor_preco = "#6e0b8a" if aplicar_desconto or (item == "Ver filme" and sorte_ativa == "Dia de Cinema") else "#000000"
                     st.markdown(f"<div style='margin-top: 2px; text-align: center; color: {cor_preco}; font-weight: bold; font-family: \"VT323\", monospace; font-size: 26px;'>{preco_final}$</div>", unsafe_allow_html=True)
