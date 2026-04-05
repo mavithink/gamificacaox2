@@ -38,11 +38,54 @@ def salvar_tarefas(tarefas):
     st.stop()
     return False
 
+def botao_concluido(texto):
+    """Renderiza um bloco HTML simulando um botão pressionado em roxo leve."""
+    st.markdown(f"""
+    <div style="background-color: #E8D5EB; border: 3px solid #6e0b8a; color: #6e0b8a; font-family: 'VT323', monospace; font-size: 20px; text-align: center; font-weight: bold; padding: 2px 0;">
+        {texto}
+    </div>
+    """, unsafe_allow_html=True)
+
 def renderizar(dados):
-    st.title("Mente e Rotina")
+    # Carrega tarefas antes do painel superior para exibir a quantidade correta
+    if "tarefas" not in st.session_state:
+        st.session_state.tarefas = carregar_tarefas()
+
     sorte_ativa = dados.get("sorte_dia", {}).get("efeito")
     agora_br = datetime.utcnow() - timedelta(hours=3)
     hoje_str = str(agora_br.date())
+    mes_atual = agora_br.strftime("%Y-%m")
+    inicio_semana = agora_br.date() - timedelta(days=6)
+
+    # ==========================================
+    # CÁLCULOS DO HEADER SUPERIOR
+    # ==========================================
+    saldo_atual = dados.get("saldo", 0)
+    tarefas_a_fazer = len(st.session_state.tarefas)
+    
+    # Horas do mês e semana
+    total_pomodoros_mes = sum(v.get("pomodoros", 0.0) for k, v in dados.get("historico_diario", {}).items() if k.startswith(mes_atual))
+    horas_mes_dec = (total_pomodoros_mes * 42) / 60
+    
+    total_pomodoros_semana = sum(dados.get("historico_diario", {}).get(str(inicio_semana + timedelta(days=i)), {}).get("pomodoros", 0.0) for i in range(7))
+    horas_semana_dec = (total_pomodoros_semana * 42) / 60
+    
+    # Tarefas concluídas na semana
+    tarefas_semana = sum(dados.get("historico_diario", {}).get(str(inicio_semana + timedelta(days=i)), {}).get("tarefas_concluidas", 0) for i in range(7))
+
+    # HEADER SUPERIOR (DADOS E TÍTULO)
+    st.markdown(f"""
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 3px solid #6e0b8a; margin-bottom: 15px; padding-bottom: 10px; gap: 10px;">
+        <h1 style="margin: 0; border: none; padding: 0; color: #6e0b8a;">Mente e Rotina</h1>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; font-family: 'VT323', monospace; font-size: 18px; color: #000000;">
+            <div style="background-color: #E8D5EB; border: 2px solid #6e0b8a; padding: 2px 8px;"><strong>Saldo:</strong> {saldo_atual}$</div>
+            <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>To-Do:</strong> {tarefas_a_fazer} pendentes</div>
+            <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>H. Semana:</strong> {formatar_horas(horas_semana_dec)}</div>
+            <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>H. Mês:</strong> {formatar_horas(horas_mes_dec)}</div>
+            <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>Tarefas (Sem):</strong> {tarefas_semana} concluídas</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     if "limites_diarios" not in dados:
         dados["limites_diarios"] = {}
@@ -57,7 +100,7 @@ def renderizar(dados):
         
         with col_destaque1:
             if dados["limites_diarios"].get("paginas") == hoje_str:
-                st.button("10 Páginas (Concluído)", disabled=True, use_container_width=True)
+                botao_concluido("[✓] 10 Páginas (Concluído)")
             else:
                 if st.button("Ler 10 Pág. (+10$/+15XP)", type="primary", use_container_width=True):
                     dados["limites_diarios"]["paginas"] = hoje_str
@@ -66,7 +109,7 @@ def renderizar(dados):
         with col_destaque2:
             count_agua = dados["limites_diarios"].get("agua_count", 0)
             if count_agua >= 3:
-                st.button("Garrafa Cheia (3/3)", disabled=True, use_container_width=True)
+                botao_concluido("[✓] Garrafa Cheia (3/3)")
             else:
                 if st.button(f"Encher Garrafa (+2$/+2XP) [{count_agua}/3]", type="primary", use_container_width=True):
                     dados["limites_diarios"]["agua_count"] += 1
@@ -78,7 +121,7 @@ def renderizar(dados):
         
         with col_rotina1:
             if dados["limites_diarios"].get("agenda") == hoje_str:
-                st.button("Agenda Atualizada", disabled=True, use_container_width=True)
+                botao_concluido("[✓] Agenda Atualizada")
             else:
                 if st.button("Atualizar Agenda (+1$/+2XP)", use_container_width=True):
                     dados["limites_diarios"]["agenda"] = hoje_str
@@ -86,7 +129,7 @@ def renderizar(dados):
                     
         with col_rotina2:
             if dados["limites_diarios"].get("noticias") == hoje_str:
-                st.button("Notícias (Lido)", disabled=True, use_container_width=True)
+                botao_concluido("[✓] Notícias (Lido)")
             else:
                 if st.button("Ler Notícias (+5$/+15XP)", use_container_width=True):
                     dados["limites_diarios"]["noticias"] = hoje_str
@@ -124,10 +167,6 @@ def renderizar(dados):
         p_passado = dados["historico_diario"].get(semana_passada_str, {}).get("pomodoros", 0.0)
         meta_ghost = min(p_passado + 1.0, 8.0)
         
-        # Calculando o tempo do mês
-        mes_atual = agora_br.strftime("%Y-%m")
-        total_pomodoros_mes = sum(v.get("pomodoros", 0.0) for k, v in dados.get("historico_diario", {}).items() if k.startswith(mes_atual))
-        horas_mes_dec = (total_pomodoros_mes * 42) / 60
         horas_hoje_dec = (p_hoje * 42) / 60
         
         st.markdown(f"""
@@ -199,9 +238,6 @@ def renderizar(dados):
     with st.container(border=True):
         st.markdown("<h3 style='margin-top: 0;'>📝 Lista de Tarefas</h3>", unsafe_allow_html=True)
 
-        if "tarefas" not in st.session_state:
-            st.session_state.tarefas = carregar_tarefas()
-
         with st.expander("Adicionar Nova Tarefa", expanded=True):
             col_nome, col_data = st.columns([0.7, 0.3])
             with col_nome:
@@ -262,6 +298,12 @@ def renderizar(dados):
             if concluida or remover:
                 tarefas_restantes = [t for t in tarefas_restantes if t["id"] != t_id]
                 houve_alteracao = True
+                
+                # Se foi concluída e não apenas removida, registra no histórico diário
+                if concluida:
+                    hoje_hist = dados.setdefault("historico_diario", {}).setdefault(hoje_str, {})
+                    hoje_hist["tarefas_concluidas"] = hoje_hist.get("tarefas_concluidas", 0) + 1
+                    core.salvar_dados(dados)
 
         if houve_alteracao:
             st.session_state.tarefas = tarefas_restantes
