@@ -41,9 +41,9 @@ def salvar_tarefas(tarefas):
 def botao_concluido(texto):
     """Renderiza um bloco HTML simulando um botão pressionado em roxo leve."""
     st.markdown(f"""
-    <div style="background-color: #E8D5EB; border: 3px solid #6e0b8a; color: #6e0b8a; font-family: 'VT323', monospace; font-size: 20px; text-align: center; font-weight: bold; padding: 2px 0;">
-        {texto}
-    </div>
+<div style="background-color: #E8D5EB; border: 3px solid #6e0b8a; color: #6e0b8a; font-family: 'VT323', monospace; font-size: 20px; text-align: center; font-weight: bold; padding: 2px 0;">
+{texto}
+</div>
     """, unsafe_allow_html=True)
 
 def renderizar(dados):
@@ -71,22 +71,19 @@ def renderizar(dados):
     tarefas_semana = sum(dados.get("historico_diario", {}).get(str(inicio_semana + timedelta(days=i)), {}).get("tarefas_concluidas", 0) for i in range(7))
 
     # HEADER SUPERIOR (TÍTULO + DECORAÇÃO + DADOS)
+    # ATENÇÃO: Todo o HTML colado na margem esquerda para evitar erro de Code Block do Markdown
     st.markdown(f"""
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #6e0b8a; margin-bottom: 15px; padding-bottom: 10px;">
-        <h1 style="margin: 0; border: none; padding: 0; color: #6e0b8a; white-space: nowrap;">🧠 Mente e Rotina</h1>
-        
-        <div style="flex-grow: 1; text-align: center; color: #6e0b8a; font-size: 24px; padding: 0 15px; letter-spacing: 5px;">
-            ✦ • ✦ • ✦
-        </div>
-        
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; font-family: 'VT323', monospace; font-size: 18px; color: #000000; justify-content: flex-end;">
-            <div style="background-color: #E8D5EB; border: 2px solid #6e0b8a; padding: 2px 8px;"><strong>Saldo:</strong> {saldo_atual}$</div>
-            <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>To-Do:</strong> {tarefas_a_fazer} pendentes</div>
-            <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>H. Semana:</strong> {formatar_horas(horas_semana_dec)}</div>
-            <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>H. Mês:</strong> {formatar_horas(horas_mes_dec)}</div>
-            <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>Tarefas (Sem):</strong> {tarefas_semana} concluídas</div>
-        </div>
-    </div>
+<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #6e0b8a; margin-bottom: 15px; padding-bottom: 10px;">
+<h1 style="margin: 0; border: none; padding: 0; color: #6e0b8a; white-space: nowrap;">🧠 Mente e Rotina</h1>
+<div style="flex-grow: 1; text-align: center; color: #6e0b8a; font-size: 24px; padding: 0 15px; letter-spacing: 5px;">✦ • ✦ • ✦</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; font-family: 'VT323', monospace; font-size: 18px; color: #000000; justify-content: flex-end;">
+<div style="background-color: #E8D5EB; border: 2px solid #6e0b8a; padding: 2px 8px;"><strong>Saldo:</strong> {saldo_atual}$</div>
+<div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>To-Do:</strong> {tarefas_a_fazer} pendentes</div>
+<div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>H. Semana:</strong> {formatar_horas(horas_semana_dec)}</div>
+<div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>H. Mês:</strong> {formatar_horas(horas_mes_dec)}</div>
+<div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>Tarefas (Sem):</strong> {tarefas_semana} concluídas</div>
+</div>
+</div>
     """, unsafe_allow_html=True)
 
     if "limites_diarios" not in dados:
@@ -173,28 +170,27 @@ def renderizar(dados):
         col_info, col_timer = st.columns([1, 1])
         
         with col_info:
-            # Tabela ajustada para 2x3 para caber perfeitamente na metade da tela sem distorcer
             st.markdown(f"""
-                <table width="100%" border="3" cellpadding="5" cellspacing="0" bordercolor="#000000" style="text-align: center; font-size: 18px; font-family: 'VT323', monospace;">
-                    <tr bgcolor="#E8D5EB" style="font-weight: bold;">
-                        <td>Sessões Hoje</td>
-                        <td>Horas Hoje</td>
-                        <td>Horas Mês</td>
-                    </tr>
-                    <tr>
-                        <td>{p_hoje:.1f}</td>
-                        <td>{formatar_horas(horas_hoje_dec)}</td>
-                        <td>{formatar_horas(horas_mes_dec)}</td>
-                    </tr>
-                    <tr bgcolor="#E8D5EB" style="font-weight: bold;">
-                        <td>Sessões Ghost</td>
-                        <td colspan="2">Meta Ghost</td>
-                    </tr>
-                    <tr>
-                        <td>{p_passado:.1f}</td>
-                        <td colspan="2">{meta_ghost:.1f}</td>
-                    </tr>
-                </table>
+<table width="100%" border="3" cellpadding="5" cellspacing="0" bordercolor="#000000" style="text-align: center; font-size: 18px; font-family: 'VT323', monospace;">
+<tr bgcolor="#E8D5EB" style="font-weight: bold;">
+<td>Sessões Hoje</td>
+<td>Horas Hoje</td>
+<td>Horas Mês</td>
+</tr>
+<tr>
+<td>{p_hoje:.1f}</td>
+<td>{formatar_horas(horas_hoje_dec)}</td>
+<td>{formatar_horas(horas_mes_dec)}</td>
+</tr>
+<tr bgcolor="#E8D5EB" style="font-weight: bold;">
+<td>Sessões Ghost</td>
+<td colspan="2">Meta Ghost</td>
+</tr>
+<tr>
+<td>{p_passado:.1f}</td>
+<td colspan="2">{meta_ghost:.1f}</td>
+</tr>
+</table>
             """, unsafe_allow_html=True)
             
         with col_timer:
@@ -246,7 +242,6 @@ def renderizar(dados):
             
             st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
             
-            # Botões de Conclusão Manual (Sessão e Tópico)
             s_base_sessao = 15
             if sorte_ativa == "Dia de Sorte":
                 s_base_sessao += 5
@@ -309,10 +304,10 @@ def renderizar(dados):
             col1, col2 = st.columns([0.85, 0.15])
             with col1:
                 st.markdown(f"""
-                <div style="border: 2px solid #000000; border-left: 8px solid #6e0b8a; padding: 5px 10px; margin-bottom: 2px; background-color: #FFFFFF;">
-                    <strong style="font-size: 18px;">{nome}</strong><br>
-                    <span style="font-size: 16px; color: #666;">Pri: {pri} | {datetime.strptime(data_t, '%Y-%m-%d').strftime('%d/%m/%Y')}</span>
-                </div>
+<div style="border: 2px solid #000000; border-left: 8px solid #6e0b8a; padding: 5px 10px; margin-bottom: 2px; background-color: #FFFFFF;">
+<strong style="font-size: 18px;">{nome}</strong><br>
+<span style="font-size: 16px; color: #666;">Pri: {pri} | {datetime.strptime(data_t, '%Y-%m-%d').strftime('%d/%m/%Y')}</span>
+</div>
                 """, unsafe_allow_html=True)
                 concluida = st.checkbox("Concluir", key=f"chk_{t_id}")
             with col2:
