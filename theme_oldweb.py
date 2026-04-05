@@ -5,9 +5,9 @@ def injetar_css_oldweb():
     <style>
     @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-    /* Oculta o header branco padrão do Streamlit */
+    /* Deixa o header transparente mas mantém os botões de navegação (como o da barra lateral) ativos */
     [data-testid="stHeader"] {
-        display: none !important;
+        background-color: transparent !important;
     }
 
     /* 1. Reset Global e Fundo */
@@ -22,7 +22,7 @@ def injetar_css_oldweb():
     .block-container {
         background-color: #E9EAED; 
         border: 4px solid #000000 !important; 
-        padding: 40px 20px 20px 20px !important; /* Ajuste no preenchimento para compensar o topo */
+        padding: 40px 20px 20px 20px !important; 
         box-shadow: 4px 4px 0px #808080 !important; 
         margin-top: 10px;
     }
