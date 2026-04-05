@@ -250,7 +250,8 @@ def aplicar_sorte_diaria(dados):
             ("Foco Total", "🧠 Tópicos concluídos dão o dobro de XP"),
             ("Limpinho", "🧹 Tarefas de limpeza dão o dobro de moedas"),
             ("Dia de Cinema", "🍿 Assistir a um filme custa apenas 30 moedas"),
-            ("Não faça isso", "🚫 Punições retiram o triplo de moedas")
+            ("Não faça isso", "🚫 Punições retiram o triplo de moedas"),
+            ("Dia de Leitura", "📖 Ler Novels custa 25% a menos hoje")
         ]
         sorteio = random.choice(opcoes)
         dados["sorte_dia"] = {"data": hoje, "efeito": sorteio[0], "desc": sorteio[1]}
