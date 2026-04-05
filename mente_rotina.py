@@ -47,7 +47,6 @@ def botao_concluido(texto):
     """, unsafe_allow_html=True)
 
 def renderizar(dados):
-    # Carrega tarefas antes do painel superior para exibir a quantidade correta
     if "tarefas" not in st.session_state:
         st.session_state.tarefas = carregar_tarefas()
 
@@ -63,21 +62,24 @@ def renderizar(dados):
     saldo_atual = dados.get("saldo", 0)
     tarefas_a_fazer = len(st.session_state.tarefas)
     
-    # Horas do mês e semana
     total_pomodoros_mes = sum(v.get("pomodoros", 0.0) for k, v in dados.get("historico_diario", {}).items() if k.startswith(mes_atual))
     horas_mes_dec = (total_pomodoros_mes * 42) / 60
     
     total_pomodoros_semana = sum(dados.get("historico_diario", {}).get(str(inicio_semana + timedelta(days=i)), {}).get("pomodoros", 0.0) for i in range(7))
     horas_semana_dec = (total_pomodoros_semana * 42) / 60
     
-    # Tarefas concluídas na semana
     tarefas_semana = sum(dados.get("historico_diario", {}).get(str(inicio_semana + timedelta(days=i)), {}).get("tarefas_concluidas", 0) for i in range(7))
 
-    # HEADER SUPERIOR (DADOS E TÍTULO)
+    # HEADER SUPERIOR (TÍTULO + DECORAÇÃO + DADOS)
     st.markdown(f"""
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 3px solid #6e0b8a; margin-bottom: 15px; padding-bottom: 10px; gap: 10px;">
-        <h1 style="margin: 0; border: none; padding: 0; color: #6e0b8a;">Mente e Rotina</h1>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; font-family: 'VT323', monospace; font-size: 18px; color: #000000;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #6e0b8a; margin-bottom: 15px; padding-bottom: 10px;">
+        <h1 style="margin: 0; border: none; padding: 0; color: #6e0b8a; white-space: nowrap;">🧠 Mente e Rotina</h1>
+        
+        <div style="flex-grow: 1; text-align: center; color: #6e0b8a; font-size: 24px; padding: 0 15px; letter-spacing: 5px;">
+            ✦ • ✦ • ✦
+        </div>
+        
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; font-family: 'VT323', monospace; font-size: 18px; color: #000000; justify-content: flex-end;">
             <div style="background-color: #E8D5EB; border: 2px solid #6e0b8a; padding: 2px 8px;"><strong>Saldo:</strong> {saldo_atual}$</div>
             <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>To-Do:</strong> {tarefas_a_fazer} pendentes</div>
             <div style="background-color: #FFFFFF; border: 2px solid #000000; padding: 2px 8px;"><strong>H. Semana:</strong> {formatar_horas(horas_semana_dec)}</div>
@@ -166,74 +168,96 @@ def renderizar(dados):
         p_hoje = dados["historico_diario"].get(hoje_str, {}).get("pomodoros", 0.0)
         p_passado = dados["historico_diario"].get(semana_passada_str, {}).get("pomodoros", 0.0)
         meta_ghost = min(p_passado + 1.0, 8.0)
-        
         horas_hoje_dec = (p_hoje * 42) / 60
         
-        st.markdown(f"""
-            <table width="100%" border="3" cellpadding="2" cellspacing="0" bordercolor="#000000" style="margin-bottom: 15px; text-align: center; font-size: 18px; font-family: 'VT323', monospace;">
-                <tr bgcolor="#E8D5EB" style="font-weight: bold;">
-                    <td>Sessões Hoje</td>
-                    <td>Horas Hoje</td>
-                    <td>Sessões Ghost</td>
-                    <td>Meta Ghost</td>
-                    <td>Horas Mês</td>
-                </tr>
-                <tr>
-                    <td>{p_hoje:.1f}</td>
-                    <td>{formatar_horas(horas_hoje_dec)}</td>
-                    <td>{p_passado:.1f}</td>
-                    <td>{meta_ghost:.1f}</td>
-                    <td>{formatar_horas(horas_mes_dec)}</td>
-                </tr>
-            </table>
-        """, unsafe_allow_html=True)
+        col_info, col_timer = st.columns([1, 1])
         
-        if st.session_state.inicio_cronometro is None:
-            col_vazia1, col_btn_timer, col_vazia2 = st.columns([1, 1, 1])
-            with col_btn_timer:
+        with col_info:
+            # Tabela ajustada para 2x3 para caber perfeitamente na metade da tela sem distorcer
+            st.markdown(f"""
+                <table width="100%" border="3" cellpadding="5" cellspacing="0" bordercolor="#000000" style="text-align: center; font-size: 18px; font-family: 'VT323', monospace;">
+                    <tr bgcolor="#E8D5EB" style="font-weight: bold;">
+                        <td>Sessões Hoje</td>
+                        <td>Horas Hoje</td>
+                        <td>Horas Mês</td>
+                    </tr>
+                    <tr>
+                        <td>{p_hoje:.1f}</td>
+                        <td>{formatar_horas(horas_hoje_dec)}</td>
+                        <td>{formatar_horas(horas_mes_dec)}</td>
+                    </tr>
+                    <tr bgcolor="#E8D5EB" style="font-weight: bold;">
+                        <td>Sessões Ghost</td>
+                        <td colspan="2">Meta Ghost</td>
+                    </tr>
+                    <tr>
+                        <td>{p_passado:.1f}</td>
+                        <td colspan="2">{meta_ghost:.1f}</td>
+                    </tr>
+                </table>
+            """, unsafe_allow_html=True)
+            
+        with col_timer:
+            if st.session_state.inicio_cronometro is None:
+                st.markdown("""<div style="color:#6e0b8a; font-size: 80px; text-align: center; font-family: 'VT323', monospace; font-weight: bold; margin-bottom: 10px;">00:00</div>""", unsafe_allow_html=True)
                 if st.button("Iniciar Estudo", use_container_width=True):
                     st.session_state.inicio_cronometro = time.time()
                     st.rerun()
-        else:
-            decorrido_inicial = max(0, int(time.time() - st.session_state.inicio_cronometro))
-            components.html(f"""
-            <div id="clock" style="color:#6e0b8a; font-size: 80px; text-align: center; font-family: 'VT323', monospace; font-weight: bold; margin-top: 10px;">00:00</div>
-            <script>
-                var diff = {decorrido_inicial};
-                function atualizarRelogio() {{
-                    var m = Math.floor(diff / 60).toString().padStart(2, '0');
-                    var s = (diff % 60).toString().padStart(2, '0');
-                    document.getElementById('clock').innerHTML = m + ":" + s;
-                    diff++;
-                }}
-                atualizarRelogio(); 
-                setInterval(atualizarRelogio, 1000);
-            </script>
-            """, height=120)
-            
-            col_stop, col_cancel = st.columns(2)
-            with col_stop:
-                if st.button("Concluir e Salvar", use_container_width=True):
-                    decorrido_segundos = time.time() - st.session_state.inicio_cronometro
-                    minutos_estudados = decorrido_segundos / 60.0
-                    st.session_state.inicio_cronometro = None
-                    
-                    fator_proporcao = minutos_estudados / 42.0
-                    s_base = 15
-                    if sorte_ativa == "Dia de Sorte":
-                        s_base += 5
+            else:
+                decorrido_inicial = max(0, int(time.time() - st.session_state.inicio_cronometro))
+                components.html(f"""
+                <div id="clock" style="color:#6e0b8a; font-size: 80px; text-align: center; font-family: 'VT323', monospace; font-weight: bold;">00:00</div>
+                <script>
+                    var diff = {decorrido_inicial};
+                    function atualizarRelogio() {{
+                        var m = Math.floor(diff / 60).toString().padStart(2, '0');
+                        var s = (diff % 60).toString().padStart(2, '0');
+                        document.getElementById('clock').innerHTML = m + ":" + s;
+                        diff++;
+                    }}
+                    atualizarRelogio(); 
+                    setInterval(atualizarRelogio, 1000);
+                </script>
+                """, height=100)
+                
+                col_stop, col_cancel = st.columns(2)
+                with col_stop:
+                    if st.button("Concluir e Salvar", use_container_width=True):
+                        decorrido_segundos = time.time() - st.session_state.inicio_cronometro
+                        minutos_estudados = decorrido_segundos / 60.0
+                        st.session_state.inicio_cronometro = None
                         
-                    s_final = int(s_base * fator_proporcao)
-                    x_final = int(10 * fator_proporcao)
-                    
-                    core.alterar_valor(dados, "Pomodoro", s_final, x_final, "soma", qtd_sessoes=fator_proporcao, rerun=False)
-                    st.success(f"Concluído! {minutos_estudados:.1f} minutos registrados.")
-                    time.sleep(2)
-                    st.rerun()
-            with col_cancel:
-                if st.button("Cancelar", use_container_width=True):
-                    st.session_state.inicio_cronometro = None
-                    st.rerun()
+                        fator_proporcao = minutos_estudados / 42.0
+                        s_base = 15
+                        if sorte_ativa == "Dia de Sorte":
+                            s_base += 5
+                            
+                        s_final = int(s_base * fator_proporcao)
+                        x_final = int(10 * fator_proporcao)
+                        
+                        core.alterar_valor(dados, "Pomodoro", s_final, x_final, "soma", qtd_sessoes=fator_proporcao, rerun=False)
+                        st.success(f"Concluído! {minutos_estudados:.1f} minutos registrados.")
+                        time.sleep(2)
+                        st.rerun()
+                with col_cancel:
+                    if st.button("Cancelar", use_container_width=True):
+                        st.session_state.inicio_cronometro = None
+                        st.rerun()
+            
+            st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+            
+            # Botões de Conclusão Manual (Sessão e Tópico)
+            s_base_sessao = 15
+            if sorte_ativa == "Dia de Sorte":
+                s_base_sessao += 5
+            if st.button(f"Concluir 1 Sessão (Manual) (+{s_base_sessao}$ / +10XP)", use_container_width=True):
+                core.alterar_valor(dados, "Pomodoro", s_base_sessao, 10, "soma", qtd_sessoes=1.0)
+                
+            x_base_topico = 15
+            if sorte_ativa == "Foco Total":
+                x_base_topico *= 2
+            if st.button(f"Concluir 1 Tópico (+10$ / +{x_base_topico}XP)", use_container_width=True):
+                core.alterar_valor(dados, "Topico", 10, x_base_topico, "soma")
 
     with st.container(border=True):
         st.markdown("<h3 style='margin-top: 0;'>📝 Lista de Tarefas</h3>", unsafe_allow_html=True)
@@ -299,7 +323,6 @@ def renderizar(dados):
                 tarefas_restantes = [t for t in tarefas_restantes if t["id"] != t_id]
                 houve_alteracao = True
                 
-                # Se foi concluída e não apenas removida, registra no histórico diário
                 if concluida:
                     hoje_hist = dados.setdefault("historico_diario", {}).setdefault(hoje_str, {})
                     hoje_hist["tarefas_concluidas"] = hoje_hist.get("tarefas_concluidas", 0) + 1
